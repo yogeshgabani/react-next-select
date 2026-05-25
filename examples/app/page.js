@@ -1007,10 +1007,18 @@ export default function Page() {
   const [iconValue, setIconValue] = useState(null)
   const [iconChoice, setIconChoice] = useState('thick')
   const [mode, setMode] = useState('dark')
+  const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', mode)
   }, [mode])
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const [copiedStep, setCopiedStep] = useState(null)
   const copyStep = (text, key) => {
@@ -1064,16 +1072,30 @@ export default function Page() {
 
   return (
     <>
-      {/* Sticky Nav */}
+      {/* Fixed animated nav */}
       <nav
+        className="rns-demo__nav"
         style={{
-          position: 'sticky',
+          position: 'fixed',
           top: 0,
+          left: 0,
+          right: 0,
           zIndex: 50,
-          background: 'rgb(var(--nav-rgb) / 0.75)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgb(var(--border-rgb) / 0.08)',
-          transition: 'background 0.3s, border-color 0.3s',
+          background: scrolled
+            ? 'rgb(var(--nav-rgb) / 0.85)'
+            : 'rgb(var(--nav-rgb) / 0.45)',
+          backdropFilter: scrolled ? 'blur(18px) saturate(160%)' : 'blur(10px)',
+          WebkitBackdropFilter: scrolled ? 'blur(18px) saturate(160%)' : 'blur(10px)',
+          borderBottom: scrolled
+            ? '1px solid rgb(var(--border-rgb) / 0.14)'
+            : '1px solid rgb(var(--border-rgb) / 0.04)',
+          boxShadow: scrolled
+            ? '0 10px 30px -12px rgba(0,0,0,0.45), 0 2px 6px -2px rgba(0,0,0,0.25)'
+            : '0 0 0 rgba(0,0,0,0)',
+          transform: scrolled ? 'translateY(0)' : 'translateY(0)',
+          animation: 'rns-nav-drop 0.55s cubic-bezier(0.22, 1, 0.36, 1) both',
+          transition:
+            'background 0.35s ease, backdrop-filter 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, padding 0.35s ease',
         }}
       >
         <div
@@ -1081,19 +1103,20 @@ export default function Page() {
           style={{
             maxWidth: 1200,
             margin: '0 auto',
-            padding: '14px 20px',
+            padding: scrolled ? '10px 20px' : '16px 20px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: 10,
             flexWrap: 'wrap',
+            transition: 'padding 0.35s ease',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
             <div
               style={{
-                width: 32,
-                height: 32,
+                width: scrolled ? 28 : 32,
+                height: scrolled ? 28 : 32,
                 flexShrink: 0,
                 borderRadius: 8,
                 background: 'linear-gradient(135deg, #a78bfa, #ec4899)',
@@ -1102,6 +1125,11 @@ export default function Page() {
                 justifyContent: 'center',
                 fontWeight: 800,
                 color: '#fff',
+                fontSize: scrolled ? 13 : 15,
+                boxShadow: scrolled
+                  ? '0 4px 12px -2px rgba(167,139,250,0.45)'
+                  : '0 0 0 rgba(0,0,0,0)',
+                transition: 'all 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
               }}
             >
               R
@@ -1110,9 +1138,10 @@ export default function Page() {
               className="rns-demo__brand-text"
               style={{
                 fontWeight: 700,
-                fontSize: 16,
+                fontSize: scrolled ? 15 : 16,
                 color: 'var(--text-primary)',
                 whiteSpace: 'nowrap',
+                transition: 'font-size 0.35s ease',
               }}
             >
               react-next-select
@@ -1177,7 +1206,7 @@ export default function Page() {
         </div>
       </nav>
 
-      <main style={{ maxWidth: 1200, margin: '0 auto', padding: '60px 24px 80px' }}>
+      <main style={{ maxWidth: 1200, margin: '0 auto', padding: '120px 24px 80px' }}>
         {/* Hero */}
         <section className="fade-up" style={{ textAlign: 'center', marginBottom: 80 }}>
           <div style={{ display: 'inline-flex', marginBottom: 20 }}>
@@ -1611,30 +1640,287 @@ export default function Page() {
         </section>
 
         {/* Footer */}
-        <footer
-          style={{
-            marginTop: 80,
-            padding: '32px 0 0',
-            borderTop: '1px solid rgb(var(--border-rgb) / 0.06)',
-            textAlign: 'center',
-            color: 'var(--text-soft)',
-            fontSize: 13,
-          }}
-        >
-          <p style={{ margin: '0 0 8px' }}>
-            Built with ❤️ by{' '}
-            <a
-              href="https://github.com/yogeshgabani"
-              target="_blank"
-              rel="noreferrer"
-              style={{ color: '#a78bfa', fontWeight: 600 }}
+        <footer style={{ marginTop: 96, marginBottom: 24 }}>
+          <div
+            style={{
+              position: 'relative',
+              borderRadius: 20,
+              padding: 1,
+              background:
+                'linear-gradient(135deg, rgba(244,114,182,0.55) 0%, rgba(167,139,250,0.15) 40%, rgba(56,189,248,0.55) 100%)',
+            }}
+          >
+            <div
+              style={{
+                borderRadius: 19,
+                background:
+                  'linear-gradient(180deg, rgb(var(--surface-strong-rgb) / 0.85) 0%, rgb(var(--surface-strong-rgb) / 0.95) 100%)',
+                backdropFilter: 'blur(14px)',
+                WebkitBackdropFilter: 'blur(14px)',
+                padding: '28px 20px',
+              }}
             >
-              Yogesh Gabani
-            </a>
-          </p>
-          <p style={{ margin: 0 }}>MIT Licensed · Made for the React & Next.js community</p>
+              {/* Top row: brand + action buttons */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 20,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div
+                    style={{
+                      width: 44,
+                      height: 30,
+                      borderRadius: 10,
+                      background: 'rgba(167,139,250,0.12)',
+                      border: '1px solid rgba(167,139,250,0.25)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 5,
+                      padding: '4px',
+                    }}
+                  >
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#a78bfa' }} />
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#f472b6' }} />
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#38bdf8' }} />
+                  </div>
+                  <div>
+                    <div
+                      style={{
+                        color: 'var(--text-primary)',
+                        fontWeight: 700,
+                        fontSize: 16,
+                        letterSpacing: '-0.01em',
+                      }}
+                    >
+                      react-next-select
+                    </div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 2 }}>
+                      Modern, accessible select component for React & Next.js
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                  <a
+                    href="https://github.com/yogeshgabani/react-next-select"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '9px 16px',
+                      borderRadius: 999,
+                      border: '1px solid rgb(var(--border-rgb) / 0.18)',
+                      background: 'rgb(var(--surface-rgb) / 0.04)',
+                      color: 'var(--text-primary)',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      textDecoration: 'none',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                      <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.34-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.35.78 1.04.78 2.1v3.11c0 .31.21.67.79.56 4.57-1.52 7.86-5.83 7.86-10.91C23.5 5.65 18.35.5 12 .5Z" />
+                    </svg>
+                    GitHub
+                  </a>
+                  <a
+                    href="https://www.npmjs.com/package/react-next-select"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '9px 16px',
+                      borderRadius: 999,
+                      border: '1px solid rgb(var(--border-rgb) / 0.18)',
+                      background: 'rgb(var(--surface-rgb) / 0.04)',
+                      color: 'var(--text-primary)',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      textDecoration: 'none',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <svg width="22" height="14" viewBox="0 0 27 16" fill="currentColor" aria-hidden>
+                      <path d="M0 0h27v14H14v2H7v-2H0V0Zm2 12h5V4h3v8h2V2H2v10Zm12-10v12h5v-2h5V2H14Zm8 2h-3v6h3V4Z" />
+                    </svg>
+                    npm
+                  </a>
+                  <a
+                    href="#demos"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '9px 16px',
+                      borderRadius: 999,
+                      border: '1px solid rgb(var(--border-rgb) / 0.18)',
+                      background: 'rgb(var(--surface-rgb) / 0.04)',
+                      color: 'var(--text-primary)',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      textDecoration: 'none',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <rect x="3" y="4" width="18" height="14" rx="2" />
+                      <path d="M3 8h18" />
+                    </svg>
+                    Demos
+                  </a>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div
+                style={{
+                  height: 1,
+                  margin: '24px 0 20px',
+                  background:
+                    'linear-gradient(90deg, transparent, rgb(var(--border-rgb) / 0.20), transparent)',
+                }}
+              />
+
+              {/* Bottom row: license + credit */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 16,
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        padding: '3px 9px',
+                        borderRadius: 6,
+                        border: '1px solid rgba(167,139,250,0.35)',
+                        background: 'rgba(167,139,250,0.10)',
+                        color: '#c4b5fd',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        letterSpacing: '0.06em',
+                      }}
+                    >
+                      MIT
+                    </span>
+                    <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+                      · © 2026 react-next-select
+                    </span>
+                  </div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+                    Crafted with <span style={{ color: '#f472b6' }}>♥</span> for the React & Next.js community
+                  </div>
+                </div>
+
+                <a
+                  href="https://github.com/yogeshgabani"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '9px 16px',
+                    borderRadius: 999,
+                    border: '1px solid rgb(var(--border-rgb) / 0.18)',
+                    background: 'rgb(var(--surface-rgb) / 0.04)',
+                    color: 'var(--text-muted)',
+                    fontSize: 13,
+                    textDecoration: 'none',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  Built by{' '}
+                  <span
+                    style={{
+                      fontWeight: 700,
+                      background: 'linear-gradient(135deg, #a78bfa 0%, #f472b6 50%, #38bdf8 100%)',
+                      WebkitBackgroundClip: 'text',
+                      backgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      color: 'transparent',
+                    }}
+                  >
+                    Yogesh Gabani
+                  </span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M7 17 17 7M9 7h8v8" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
         </footer>
       </main>
+
+      {/* Scroll-to-top button */}
+      <button
+        type="button"
+        aria-label="Scroll to top"
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        style={{
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          zIndex: 60,
+          width: 48,
+          height: 48,
+          borderRadius: '50%',
+          border: 'none',
+          cursor: scrolled ? 'pointer' : 'default',
+          background: 'linear-gradient(135deg, #a78bfa 0%, #f472b6 50%, #38bdf8 100%)',
+          color: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 10px 30px -8px rgba(167, 139, 250, 0.55), 0 4px 12px -4px rgba(244, 114, 182, 0.35)',
+          opacity: scrolled ? 1 : 0,
+          transform: scrolled ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.85)',
+          pointerEvents: scrolled ? 'auto' : 'none',
+          transition:
+            'opacity 0.35s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-3px) scale(1.05)'
+          e.currentTarget.style.boxShadow =
+            '0 14px 36px -8px rgba(167, 139, 250, 0.7), 0 6px 16px -4px rgba(244, 114, 182, 0.45)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0) scale(1)'
+          e.currentTarget.style.boxShadow =
+            '0 10px 30px -8px rgba(167, 139, 250, 0.55), 0 4px 12px -4px rgba(244, 114, 182, 0.35)'
+        }}
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <path d="M12 19V5M5 12l7-7 7 7" />
+        </svg>
+      </button>
     </>
   )
 }
