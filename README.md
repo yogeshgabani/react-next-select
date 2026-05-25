@@ -4,6 +4,12 @@
 
 Built in JavaScript (ES6+) with no external runtime dependencies, ships ESM + CJS, and works out of the box with the Next.js App Router and Pages Router.
 
+## 🚀 Live Demo
+
+**👉 [react-next-select.netlify.app](https://react-next-select.netlify.app/)**
+
+Try every prop interactively, switch between light/dark themes, and customize the accent color live — the demo includes a Theme Studio, a Props Playground, and copy-ready code snippets for every variant.
+
 ## Features
 
 - Single select and multi-select
@@ -365,10 +371,10 @@ npm publish --access public
 
 ## Local Example App
 
-A Next.js example app is included at `examples/next-example`:
+A Next.js example app is included at `examples/`. You can also see it live at **[react-next-select.netlify.app](https://react-next-select.netlify.app/)**.
 
 ```bash
-cd examples/next-example
+cd examples
 npm install
 npm run dev
 ```

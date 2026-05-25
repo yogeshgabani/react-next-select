@@ -1,6 +1,6 @@
 {
   "name": "react-next-select",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Accessible, SSR-safe React Select for Next.js — single/multi, async, customizable",
   "author": "Yogesh Gabani",
   "license": "MIT",
