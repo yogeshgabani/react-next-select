@@ -1181,7 +1181,7 @@ export default function Page() {
         {/* Hero */}
         <section className="fade-up" style={{ textAlign: 'center', marginBottom: 80 }}>
           <div style={{ display: 'inline-flex', marginBottom: 20 }}>
-            <Tag color="#a78bfa">V0.1.1 · Now Available</Tag>
+            <Tag color="#a78bfa">V0.1.2 · Now Available</Tag>
           </div>
           <h1
             style={{
