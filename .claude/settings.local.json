@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code} in %{time_total}s\\\\n\" http://localhost:3000/)",
+      "Bash(ls \"c:/yogesh/New folder \\(3\\)/react-next-select/dist\" 2>&1; echo \"---\"; ls \"c:/yogesh/New folder \\(3\\)/react-next-select/examples/next-example/node_modules/react-next-select\" 2>&1)",
+      "Read(//c/yogesh/New folder \\(3\\)/react-next-select/examples/next-example/node_modules/**)",
+      "PowerShell($p = \"c:\\\\yogesh\\\\New folder \\(3\\)\\\\react-next-select\\\\examples\\\\next-example\\\\node_modules\\\\react-next-select\"; Test-Path $p; Get-ChildItem $p -Force -ErrorAction SilentlyContinue | Select-Object Name; \\(Get-Item $p -Force\\).LinkType; \\(Get-Item $p -Force\\).Target)"
+    ]
+  }
+}
