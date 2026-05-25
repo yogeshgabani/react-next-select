@@ -1,7 +1,7 @@
 {
   "name": "react-next-select",
   "version": "0.1.0",
-  "description": "Accessible, SSR-safe React Select for Next.js — single/multi, async, customizable",
+  "description": "Accessible, SSR-safe React Select for Next.js \u2014 single/multi, async, customizable",
   "author": "Yogesh Gabani",
   "license": "MIT",
   "type": "module",
@@ -23,8 +23,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "vite build",
-    "dev": "vite build --watch",
+    "build": "node init && vite build",
+    "dev": "node init && vite build --watch",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
