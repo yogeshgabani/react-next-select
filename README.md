@@ -169,6 +169,7 @@ import {
 | `showMenuSearchInput` | `boolean` | `false` | Render a separate search input inside the menu. |
 | `menuSearchPlaceholder` | `string` | `'Search...'` | Placeholder for the in-menu search input. |
 | `menuSearchInputProps` | `object` | `{}` | Extra props for the in-menu search `<input>`. |
+| `dropdownIcon` | `ReactNode \| ({ isOpen }) => ReactNode` | — | Replace just the chevron icon — accepts a string, element, or render function. The wrapper handles the 180° open/close rotation automatically. |
 | `components` | `object` | — | Override internal subcomponents (`Control`, `Option`, `Menu`, `MenuList`, `Input`, `DropdownIndicator`, `ClearIndicator`, `SingleValue`, `MultiValue`, `LoadingMessage`, `NoOptionsMessage`). |
 | `styles` | `object` | `{}` | Style override map (see Styling). |
 | `formatOptionLabel` | `(option, { context }) => ReactNode` | — | Custom label renderer. `context` is `'menu'` or `'value'`. |
@@ -291,6 +292,42 @@ export default function Demo() {
       background: '#ede9fe',
       color: '#4c1d95',
     }),
+  }}
+/>
+```
+
+## Custom Dropdown Icon
+
+Swap the default chevron without writing a full subcomponent — pass anything renderable to `dropdownIcon`. The wrapper rotates 180° on open/close, so any icon you provide animates automatically.
+
+```jsx
+// 1) String, emoji, or any character
+<Select options={options} dropdownIcon="⌄" />
+
+// 2) Any React node — your own SVG, an icon library, an image, etc.
+import { ChevronDown } from 'lucide-react'
+
+<Select options={options} dropdownIcon={<ChevronDown size={14} />} />
+
+// 3) Render function — receives { isOpen } if you want different icons per state.
+//    Tip: the wrapper still rotates 180°, so for stateful swaps either
+//    return rotation-safe artwork or override `components.DropdownIndicator`.
+<Select
+  options={options}
+  dropdownIcon={({ isOpen }) => (isOpen ? '−' : '+')}
+/>
+```
+
+Need full control (different markup, no rotation, custom click handling)? Override the whole component instead:
+
+```jsx
+<Select
+  components={{
+    DropdownIndicator: ({ innerProps }) => (
+      <button {...innerProps} className="my-caret" aria-hidden tabIndex={-1}>
+        ▼
+      </button>
+    ),
   }}
 />
 ```

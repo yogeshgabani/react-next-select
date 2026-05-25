@@ -65,6 +65,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.35s ease, color 0.35s ease;
+  overflow-x: hidden;
 }
 
 body {
@@ -275,4 +276,80 @@ pre {
   border-color: rgb(var(--border-rgb) / 0.15) !important;
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+/* Demo cards create their own stacking context (backdrop-filter), so an
+   open dropdown gets painted *below* the next sibling card. Give every
+   card a baseline z-index and lift any card whose Select menu is open.
+   Stay below the sticky nav (z-index: 50) so the header is never hidden. */
+article.fade-up,
+section.fade-up {
+  position: relative;
+  z-index: 1;
+}
+
+article.fade-up:has(.rns__menu),
+section.fade-up:has(.rns__menu) {
+  z-index: 40;
+}
+
+.rns__menu {
+  z-index: 30 !important;
+}
+
+/* ============================================================ */
+/* Responsive demo layout                                       */
+/* ============================================================ */
+
+/* Tablet / large phone — tighten outer padding & vertical rhythm */
+@media (max-width: 760px) {
+  main {
+    padding: 40px 18px 56px !important;
+  }
+
+  section.fade-up,
+  article.fade-up {
+    margin-bottom: 56px !important;
+  }
+
+  section.fade-up h2 {
+    font-size: 26px !important;
+  }
+}
+
+/* Small phone */
+@media (max-width: 480px) {
+  main {
+    padding: 28px 12px 44px !important;
+  }
+
+  .rns-demo__nav-row {
+    padding: 12px 14px !important;
+  }
+
+  /* Hide the wordmark — the gradient logo + actions still identify the page */
+  .rns-demo__brand-text {
+    display: none !important;
+  }
+
+  /* Shrink nav buttons so they always fit on one row */
+  .rns-demo__nav-row a {
+    padding: 6px 12px !important;
+    font-size: 13px !important;
+  }
+
+  /* Demo card padding only (don't touch hero/features sections that
+     already use clamp() or no padding) */
+  article.fade-up {
+    padding: 20px !important;
+    margin-bottom: 16px !important;
+  }
+
+  article.fade-up h3 {
+    font-size: 18px !important;
+  }
+
+  section.fade-up h2 {
+    font-size: 22px !important;
+  }
 }

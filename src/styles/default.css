@@ -128,7 +128,16 @@
 }
 
 .rns__dropdown-chevron {
-  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: transform 0.2s ease;
+  transform-origin: center;
+}
+
+.rns__dropdown-indicator--open .rns__dropdown-chevron {
+  transform: rotate(180deg);
 }
 
 .rns__menu {

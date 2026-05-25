@@ -28,19 +28,48 @@ export function DefaultIndicatorsContainer(props) {
   )
 }
 
+const DefaultChevron = (
+  <svg
+    viewBox="0 0 20 20"
+    width="14"
+    height="14"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path
+      d="M5 7.5l5 5 5-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+)
+
 export function DefaultDropdownIndicator(props) {
-  const { innerProps } = props
+  const { innerProps, selectProps } = props
   const ctx = useSelectContext()
+  const customIcon = selectProps?.dropdownIcon
+  const icon =
+    customIcon === undefined || customIcon === null
+      ? DefaultChevron
+      : typeof customIcon === 'function'
+        ? customIcon({ isOpen: ctx.isOpen })
+        : customIcon
+  const className =
+    'rns__indicator rns__dropdown-indicator' +
+    (ctx.isOpen ? ' rns__dropdown-indicator--open' : '')
   return (
     <button
       type="button"
-      className="rns__indicator rns__dropdown-indicator"
+      className={className}
       aria-hidden
       tabIndex={-1}
       {...innerProps}
     >
-      <span className="rns__dropdown-chevron" aria-hidden>
-        {ctx.isOpen ? '▲' : '▼'}
+      <span className="rns__dropdown-chevron" aria-hidden="true">
+        {icon}
       </span>
     </button>
   )

@@ -321,7 +321,7 @@ function PropsPlayground({ options }) {
       className="fade-up"
       style={{
         marginBottom: 80,
-        padding: 32,
+        padding: 'clamp(20px, 4vw, 32px)',
         background: 'rgb(var(--surface-rgb) / 0.04)',
         border: '1px solid rgb(var(--border-rgb) / 0.08)',
         borderRadius: 24,
@@ -349,7 +349,7 @@ function PropsPlayground({ options }) {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
           gap: 24,
           alignItems: 'start',
         }}
@@ -597,7 +597,7 @@ function ThemeStudio({ themeOptions }) {
       className="fade-up"
       style={{
         marginBottom: 80,
-        padding: 32,
+        padding: 'clamp(20px, 4vw, 32px)',
         background:
           'linear-gradient(135deg, rgb(var(--rns-accent) / 0.08), rgba(255,255,255,0.02))',
         border: '1px solid rgb(var(--rns-accent) / 0.25)',
@@ -627,7 +627,7 @@ function ThemeStudio({ themeOptions }) {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
           gap: 28,
           alignItems: 'start',
         }}
@@ -931,12 +931,81 @@ function DemoCard({ tags, title, description, children, code }) {
   )
 }
 
+const DROPDOWN_ICON_VARIANTS = {
+  thick: {
+    label: 'Thick chevron',
+    render: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <polyline points="6 9 12 15 18 9" />
+      </svg>
+    ),
+    snippet: `<Select
+  options={options}
+  dropdownIcon={
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="3"
+      strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  }
+/>`,
+  },
+  emoji: {
+    label: '🔽 Emoji',
+    render: '🔽',
+    snippet: `<Select options={options} dropdownIcon="🔽" />`,
+  },
+  toggle: {
+    label: '+ / − Stateful',
+    render: ({ isOpen }) => (
+      <span style={{ fontSize: 18, fontWeight: 700, lineHeight: 1 }}>
+        {isOpen ? '−' : '+'}
+      </span>
+    ),
+    snippet: `<Select
+  options={options}
+  dropdownIcon={({ isOpen }) => (
+    <span style={{ fontSize: 18, fontWeight: 700 }}>
+      {isOpen ? '−' : '+'}
+    </span>
+  )}
+/>`,
+  },
+  star: {
+    label: '★ Star',
+    render: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2l2.7 7h7.3l-6 4.5 2.3 7.5L12 16.7 5.7 21l2.3-7.5-6-4.5h7.3z" />
+      </svg>
+    ),
+    snippet: `<Select
+  options={options}
+  dropdownIcon={
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2l2.7 7h7.3l-6 4.5 2.3 7.5L12 16.7 5.7 21l2.3-7.5-6-4.5h7.3z" />
+    </svg>
+  }
+/>`,
+  },
+}
+
 export default function Page() {
   const [single, setSingle] = useState(null)
   const [multi, setMulti] = useState([])
   const [framework, setFramework] = useState(null)
   const [asyncValue, setAsyncValue] = useState(null)
   const [customValue, setCustomValue] = useState(null)
+  const [iconValue, setIconValue] = useState(null)
+  const [iconChoice, setIconChoice] = useState('thick')
   const [mode, setMode] = useState('dark')
 
   useEffect(() => {
@@ -1008,20 +1077,24 @@ export default function Page() {
         }}
       >
         <div
+          className="rns-demo__nav-row"
           style={{
             maxWidth: 1200,
             margin: '0 auto',
-            padding: '16px 24px',
+            padding: '14px 20px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            gap: 10,
+            flexWrap: 'wrap',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
             <div
               style={{
                 width: 32,
                 height: 32,
+                flexShrink: 0,
                 borderRadius: 8,
                 background: 'linear-gradient(135deg, #a78bfa, #ec4899)',
                 display: 'flex',
@@ -1033,7 +1106,15 @@ export default function Page() {
             >
               R
             </div>
-            <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>
+            <span
+              className="rns-demo__brand-text"
+              style={{
+                fontWeight: 700,
+                fontSize: 16,
+                color: 'var(--text-primary)',
+                whiteSpace: 'nowrap',
+              }}
+            >
               react-next-select
             </span>
           </div>
@@ -1100,7 +1181,7 @@ export default function Page() {
         {/* Hero */}
         <section className="fade-up" style={{ textAlign: 'center', marginBottom: 80 }}>
           <div style={{ display: 'inline-flex', marginBottom: 20 }}>
-            <Tag color="#a78bfa">v0.1.0 · Now Available</Tag>
+            <Tag color="#a78bfa">V0.1.1 · Now Available</Tag>
           </div>
           <h1
             style={{
@@ -1142,7 +1223,7 @@ export default function Page() {
           {/* Quick Start — 2-step setup */}
           <div
             style={{
-              display: 'inline-flex',
+              display: 'flex',
               flexDirection: 'column',
               gap: 10,
               padding: 16,
@@ -1151,13 +1232,16 @@ export default function Page() {
               borderRadius: 14,
               backdropFilter: 'blur(8px)',
               transition: 'border-color 0.3s',
-              minWidth: 'min(560px, 92vw)',
+              width: '100%',
+              maxWidth: 560,
+              margin: '0 auto',
               textAlign: 'left',
+              boxSizing: 'border-box',
             }}
           >
             {[
               { key: 'install', prompt: '$', code: 'npm install react-next-select', label: '1. Install' },
-              { key: 'import', prompt: 'JS', code: "import 'react-next-select/style.css'", label: '2. Import styles (once)' },
+              { key: 'import', prompt: 'JS', code: "import 'react-next-select/style.css'", label: '2. Import styles (once) in App.js/App/jsx or Page.js/Page.jsx or any other file' },
             ].map(({ key, prompt, code, label }) => {
               const isCopied = copiedStep === key
               return (
@@ -1182,6 +1266,7 @@ export default function Page() {
                       background: 'rgb(var(--code-rgb) / 0.6)',
                       border: '1px solid rgb(var(--border-rgb) / 0.08)',
                       borderRadius: 10,
+                      minWidth: 0,
                     }}
                   >
                     <span
@@ -1190,6 +1275,7 @@ export default function Page() {
                         fontWeight: 700,
                         color: 'rgb(var(--rns-accent))',
                         minWidth: 22,
+                        flexShrink: 0,
                         userSelect: 'none',
                       }}
                     >
@@ -1197,11 +1283,12 @@ export default function Page() {
                     </span>
                     <code
                       style={{
-                        flex: 1,
+                        flex: '1 1 0',
+                        minWidth: 0,
                         color: 'var(--text-secondary)',
                         fontSize: 13.5,
                         whiteSpace: 'nowrap',
-                        overflow: 'auto',
+                        overflowX: 'auto',
                       }}
                     >
                       {code}
@@ -1237,7 +1324,7 @@ export default function Page() {
           className="fade-up"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
             gap: 16,
             marginBottom: 80,
           }}
@@ -1301,7 +1388,7 @@ export default function Page() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
               gap: 20,
             }}
           >
@@ -1442,6 +1529,64 @@ export default function Page() {
                 onChange={setCustomValue}
                 value={customValue}
                 placeholder="See the custom rows…"
+              />
+            </DemoCard>
+
+            <DemoCard
+              tags={[
+                { label: 'Custom Icon', color: '#a78bfa' },
+                { label: 'dropdownIcon', color: '#fbbf24' },
+              ]}
+              title="Custom dropdown icon"
+              description="Swap the chevron without writing a full component. Pass a string, a ReactNode, or a function that receives { isOpen }. The 180° rotation animates automatically."
+              code={DROPDOWN_ICON_VARIANTS[iconChoice].snippet}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 6,
+                  marginBottom: 12,
+                }}
+              >
+                {Object.entries(DROPDOWN_ICON_VARIANTS).map(([key, v]) => {
+                  const active = key === iconChoice
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setIconChoice(key)}
+                      style={{
+                        padding: '6px 12px',
+                        fontSize: 12,
+                        fontWeight: active ? 600 : 500,
+                        color: active
+                          ? 'var(--text-primary)'
+                          : 'var(--text-muted)',
+                        background: active
+                          ? 'rgb(var(--rns-accent) / 0.25)'
+                          : 'rgb(var(--surface-rgb) / 0.04)',
+                        border: `1px solid ${
+                          active
+                            ? 'rgb(var(--rns-accent) / 0.6)'
+                            : 'rgb(var(--border-rgb) / 0.12)'
+                        }`,
+                        borderRadius: 8,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {v.label}
+                    </button>
+                  )
+                })}
+              </div>
+              <Select
+                options={STATIC_OPTIONS}
+                value={iconValue}
+                onChange={setIconValue}
+                isClearable
+                placeholder="Open me — watch the icon…"
+                dropdownIcon={DROPDOWN_ICON_VARIANTS[iconChoice].render}
               />
             </DemoCard>
 
