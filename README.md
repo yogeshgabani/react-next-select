@@ -1,4 +1,19 @@
+
+<div align="center">
+
 # react-next-select
+
+**The most feature-rich React file upload & dropzone library.**
+
+Drag & drop · chunk uploads · cloud adapters · 21+ UI variants · i18n in 23 locales · a11y · SSR-safe · TypeScript-first.
+
+[![npm](https://img.shields.io/npm/v/react-upload-pro.svg?color=4f46e5&style=flat-square)](https://www.npmjs.com/package/react-next-select)
+[![types](https://img.shields.io/badge/types-included-3178c6?style=flat-square)](#typescript)
+[![license](https://img.shields.io/badge/license-MIT-emerald?style=flat-square)](./LICENSE)
+[![bundle](https://img.shields.io/badge/tree--shakable-✓-10b981?style=flat-square)](#performance)
+
+</div>
+
 
 > Accessible, SSR-safe React Select component for Next.js — single/multi, async, fully customizable.
 
@@ -123,6 +138,189 @@ export default function Home() {
 />
 ```
 
+## Full Example — Every Prop, Annotated
+
+A copy-paste reference showing every prop with inline comments. Delete what you don't need — most props are optional.
+
+```jsx
+'use client'
+
+import { useState } from 'react'
+import { Select } from 'react-next-select'
+import 'react-next-select/style.css'
+
+// Each option is just an object. `value` + `label` is the default shape,
+// but you can use any shape and tell Select how to read it via
+// `getOptionValue` / `getOptionLabel` (see below).
+const frameworks = [
+  { value: 'next',   label: 'Next.js' },
+  { value: 'remix',  label: 'Remix' },
+  { value: 'vite',   label: 'Vite' },
+  { value: 'astro',  label: 'Astro' },
+  { value: 'nuxt',   label: 'Nuxt',   disabled: true }, // your own field — Select doesn't read it
+]
+
+export default function FullExample() {
+  // Controlled value. Use `null` for single, `[]` for multi.
+  // For uncontrolled mode, drop `value` + `onChange` and pass `defaultValue` instead.
+  const [value, setValue]           = useState(null)
+  const [inputValue, setInputValue] = useState('')   // controlled search text (optional)
+  const [menuOpen, setMenuOpen]     = useState(false) // controlled menu (optional)
+
+  return (
+    <Select
+      /* ──────────────── Data ──────────────── */
+      options={frameworks}              // array of option objects
+      // loadOptions={async (q) => { ... }}  // async mode — see "Async options" above
+      // defaultOptions={true}               // preload async list on mount (or pass array)
+
+      /* ──────────────── Value ──────────────── */
+      value={value}                     // controlled selected value (object or array)
+      onChange={(next, meta) => {
+        // meta.action: 'select-option' | 'remove-value' | 'clear'
+        // meta.option / meta.removedValue: which option changed
+        setValue(next)
+      }}
+      // defaultValue={frameworks[0]}   // uncontrolled initial value (omit `value` to use this)
+
+      /* ──────────────── Behaviour ──────────────── */
+      isMulti={false}                   // true → multi-select with chips
+      isSearchable={true}               // false → behaves like a native <select>
+      isClearable={true}                // show ✕ button to clear selection
+      isDisabled={false}                // greyed out, no interaction
+      isLoading={false}                 // show loading message in menu (manual control)
+      closeMenuOnSelect={undefined}     // default: true for single, false for multi
+      blurInputOnSelect={true}          // blur after picking — set false to keep typing
+      menuPlacement="bottom"            // 'bottom' | 'top'
+
+      /* ──────────────── Search input (inside menu) ──────────────── */
+      // When true, the search box renders INSIDE the menu instead of in the control.
+      // Nice when the control shows many chips and you want a dedicated search row.
+      showMenuSearchInput={false}
+      menuSearchPlaceholder="Search options..."
+      menuSearchInputProps={{           // extra props forwarded to the in-menu <input>
+        // autoFocus: true,
+        // 'data-testid': 'menu-search',
+      }}
+
+      /* ──────────────── Custom option shape ──────────────── */
+      // Only needed if your options DON'T have `{ value, label }`.
+      getOptionValue={(o) => o.value}   // unique id for the option
+      getOptionLabel={(o) => o.label}   // string shown in control & menu
+      // Custom rendering — return any JSX. `context` is 'menu' or 'value'.
+      formatOptionLabel={(opt, { context }) =>
+        context === 'menu'
+          ? <span>🧩 {opt.label}</span>
+          : opt.label
+      }
+
+      /* ──────────────── Filtering ──────────────── */
+      // Override the built-in case-insensitive substring filter.
+      filterOption={(option, input) =>
+        option.label.toLowerCase().includes(input.toLowerCase())
+      }
+
+      /* ──────────────── Messages ──────────────── */
+      placeholder="Pick a framework..."
+      noOptionsMessage={({ inputValue }) =>
+        inputValue ? `No match for "${inputValue}"` : 'No options'
+      }
+      loadingMessage={({ inputValue }) => `Searching "${inputValue}"...`}
+
+      /* ──────────────── Controlled input / menu (advanced) ──────────────── */
+      inputValue={inputValue}
+      onInputChange={(v, meta) => {
+        // meta.action: 'input-change' | 'menu-close' | 'clear'
+        setInputValue(v)
+      }}
+      // defaultInputValue=""           // uncontrolled initial search text
+
+      menuIsOpen={menuOpen}             // controlled menu state — omit for auto
+      onMenuOpen={() => setMenuOpen(true)}
+      onMenuClose={() => setMenuOpen(false)}
+
+      /* ──────────────── Dropdown icon ──────────────── */
+      // String, JSX, or render function. Wrapper rotates 180° on open automatically.
+      dropdownIcon="⌄"
+      // dropdownIcon={<ChevronDown size={14} />}
+      // dropdownIcon={({ isOpen }) => (isOpen ? '−' : '+')}
+
+      /* ──────────────── Styling ──────────────── */
+      // Easiest: override CSS variables on :root (see "Theme via CSS variables" below).
+      // For per-instance tweaks, use `styles` (returns a style object per slot):
+      styles={{
+        control: (base, state) => ({
+          ...base,
+          borderColor: state.isFocused ? '#6d28d9' : undefined,
+        }),
+        option: (base, state) => ({
+          ...base,
+          fontWeight: state.isSelected ? 600 : 400,
+        }),
+      }}
+
+      /* ──────────────── Form integration ──────────────── */
+      // Renders a hidden <input name={name}> with the serialized value
+      // so the Select works inside a native <form>.
+      name="framework"
+
+      /* ──────────────── Accessibility & ids ──────────────── */
+      id="framework-select"             // base id (auto-generated if omitted)
+      aria-label="Framework"            // OR use aria-labelledby with a <label id>
+      // aria-labelledby="framework-label"
+      tabIndex={0}
+
+      /* ──────────────── Class hooks ──────────────── */
+      className="my-select"             // extra class on the wrapper
+      classNamePrefix="rns"             // prefix for inner classes (.rns__control, ...)
+      style={{ width: 320 }}            // inline style on the wrapper
+
+      /* ──────────────── Custom subcomponents (advanced) ──────────────── */
+      // Swap any built-in piece. All keys are optional.
+      components={{
+        // Option: ({ innerProps, data, isFocused, isSelected }) => (
+        //   <div {...innerProps} className={isFocused ? 'is-hover' : ''}>
+        //     <strong>{data.label}</strong>
+        //   </div>
+        // ),
+        // ClearIndicator, DropdownIndicator, Control, ValueContainer,
+        // IndicatorsContainer, Input, Menu, MenuList,
+        // LoadingMessage, NoOptionsMessage, SingleValue, MultiValue,
+      }}
+    />
+  )
+}
+```
+
+### Minimal versions
+
+If the full example feels heavy, here are the most common shapes — each works on its own:
+
+```jsx
+// 1. Bare minimum (uncontrolled)
+<Select options={options} />
+
+// 2. Controlled single-select
+<Select options={options} value={value} onChange={setValue} isClearable />
+
+// 3. Multi-select with chips
+<Select options={options} value={values} onChange={setValues} isMulti isClearable />
+
+// 4. Async with in-menu search box
+<Select
+  loadOptions={async (q) => fetch(`/api/search?q=${q}`).then(r => r.json())}
+  defaultOptions
+  showMenuSearchInput
+  menuSearchPlaceholder="Type to search..."
+/>
+
+// 5. Inside a <form> — submits as a normal field
+<form action="/submit" method="post">
+  <Select options={options} name="country" />
+  <button type="submit">Save</button>
+</form>
+```
+
 ## API
 
 ### Exports
@@ -185,9 +383,48 @@ import {
 
 ## Styling
 
-Two styling strategies are supported and can be combined.
+Three styling strategies are supported and can be combined.
 
-### 1) CSS override (recommended)
+### 1) Theme via CSS variables (simplest)
+
+The default stylesheet ships with `--rns-*` custom properties. Override any of them on `:root`, `body`, or a specific `.rns__wrapper` to retheme without writing any class overrides.
+
+```css
+:root {
+  --rns-accent: 167 139 250;  /* purple — RGB triplet, no commas */
+}
+```
+
+That one line restyles the focus border, focus ring, multi-value chips, and selected option together.
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `--rns-accent` | `59 130 246` (RGB triplet) | Focus border + ring, selected option, multi-value chip |
+| `--rns-border` | `203 213 225` (RGB triplet) | Control + menu border |
+| `--rns-bg` | `#fff` | Control + menu background |
+| `--rns-text` | `#0f172a` | Main text color |
+| `--rns-muted` | `#64748b` | Placeholder, icons, helper text |
+| `--rns-option-hover` | `#f1f5f9` | Option hover background |
+| `--rns-disabled-bg` | `#f8fafc` | Disabled control background |
+| `--rns-radius` | `6px` | Corner radius |
+
+Color variables that need alpha transparency (`--rns-accent`, `--rns-border`) are expressed as **space-separated RGB triplets** so they can be combined with `rgb(... / <alpha>)` internally — write `167 139 250`, not `rgb(167, 139, 250)` or `#a78bfa`.
+
+Dark theme example:
+
+```css
+[data-theme='dark'] {
+  --rns-accent: 167 139 250;
+  --rns-border: 71 85 105;
+  --rns-bg: #0f172a;
+  --rns-text: #f8fafc;
+  --rns-muted: #94a3b8;
+  --rns-option-hover: #1e293b;
+  --rns-disabled-bg: #1e293b;
+}
+```
+
+### 2) CSS class override
 
 ```jsx
 import { Select } from 'react-next-select'
@@ -264,7 +501,7 @@ export default function Demo() {
 }
 ```
 
-### 2) `styles` prop
+### 3) `styles` prop
 
 ```jsx
 <Select

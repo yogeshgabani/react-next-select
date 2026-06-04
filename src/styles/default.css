@@ -1,3 +1,22 @@
+/* ============================================================
+   react-next-select — default stylesheet
+
+   Theme via CSS custom properties. Override any of these on
+   :root, html, body, or a specific .rns__wrapper:
+
+     --rns-accent       RGB triplet — focus, selected, chip   (default 59 130 246, blue-500)
+     --rns-border       RGB triplet — control + menu border   (default 203 213 225, slate-300)
+     --rns-bg           CSS color   — control + menu surface  (default #fff)
+     --rns-text         CSS color   — main text               (default #0f172a)
+     --rns-muted        CSS color   — placeholder, icons      (default #64748b)
+     --rns-option-hover CSS color   — option hover background (default #f1f5f9)
+     --rns-disabled-bg  CSS color   — disabled control bg     (default #f8fafc)
+     --rns-radius       CSS length  — corner radius           (default 6px)
+
+   Example (purple theme):
+     :root { --rns-accent: 167 139 250; }
+   ============================================================ */
+
 .rns__wrapper {
   position: relative;
   width: 100%;
@@ -10,21 +29,21 @@
   display: flex;
   align-items: center;
   min-height: 38px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  background: #fff;
+  border: 1px solid rgb(var(--rns-border, 203 213 225));
+  border-radius: var(--rns-radius, 6px);
+  background: var(--rns-bg, #fff);
   cursor: default;
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .rns__control:hover {
-  border-color: #94a3b8;
+  border-color: rgb(var(--rns-accent, 59 130 246) / 0.5);
 }
 
 .rns__control:focus-within {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 1px #3b82f6;
+  border-color: rgb(var(--rns-accent, 59 130 246));
+  box-shadow: 0 0 0 1px rgb(var(--rns-accent, 59 130 246));
 }
 
 .rns__value-container {
@@ -41,13 +60,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #0f172a;
+  color: var(--rns-text, #0f172a);
 }
 
 .rns__multi-value {
   display: inline-flex;
   align-items: center;
-  background: #e2e8f0;
+  background: rgb(var(--rns-accent, 59 130 246) / 0.15);
+  color: var(--rns-text, #0f172a);
   border-radius: 4px;
   font-size: 13px;
   max-width: 100%;
@@ -66,15 +86,15 @@
   cursor: pointer;
   padding: 2px 6px;
   line-height: 1;
-  color: #64748b;
-  border-left: 1px solid #cbd5e1;
+  color: var(--rns-muted, #64748b);
+  border-left: 1px solid rgb(var(--rns-accent, 59 130 246) / 0.3);
   font-size: 16px;
   font-weight: 600;
 }
 
 .rns__multi-value__remove:hover {
-  color: #0f172a;
-  background: #cbd5e1;
+  color: var(--rns-text, #0f172a);
+  background: rgb(var(--rns-accent, 59 130 246) / 0.25);
 }
 
 .rns__input {
@@ -86,7 +106,7 @@
   outline: none;
   background: transparent;
   font: inherit;
-  color: #0f172a;
+  color: var(--rns-text, #0f172a);
 }
 
 .rns__input:read-only {
@@ -97,7 +117,7 @@
 }
 
 .rns__input::placeholder {
-  color: #94a3b8;
+  color: var(--rns-muted, #94a3b8);
 }
 
 .rns__indicators {
@@ -114,12 +134,12 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  color: #64748b;
+  color: var(--rns-muted, #64748b);
   line-height: 1;
 }
 
 .rns__indicator:hover {
-  color: #0f172a;
+  color: var(--rns-text, #0f172a);
 }
 
 .rns__clear-indicator {
@@ -157,9 +177,9 @@
 }
 
 .rns__menu-inner {
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  background: #fff;
+  border: 1px solid rgb(var(--rns-border, 203 213 225));
+  border-radius: var(--rns-radius, 6px);
+  background: var(--rns-bg, #fff);
   box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.12);
   max-height: 260px;
   overflow: hidden;
@@ -173,7 +193,7 @@
 
 .rns__menu-search-wrap {
   padding: 8px 10px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid rgb(var(--rns-border, 203 213 225) / 0.7);
 }
 
 .rns__menu-search-input-wrap {
@@ -183,16 +203,16 @@
   min-width: 0;
   max-width: 100%;
   gap: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid rgb(var(--rns-border, 203 213 225));
   border-radius: 8px;
   padding: 0 10px;
-  background: #fff;
+  background: var(--rns-bg, #fff);
   box-sizing: border-box;
 }
 
 .rns__menu-search-icon {
   display: inline-flex;
-  color: #64748b;
+  color: var(--rns-muted, #64748b);
   flex: 0 0 auto;
 }
 
@@ -204,18 +224,20 @@
   padding: 9px 0;
   outline: none;
   font: inherit;
+  background: transparent;
+  color: var(--rns-text, #0f172a);
 }
 
 .rns__menu-search-input-wrap:focus-within {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 1px #3b82f6;
+  border-color: rgb(var(--rns-accent, 59 130 246));
+  box-shadow: 0 0 0 1px rgb(var(--rns-accent, 59 130 246));
 }
 
 .rns__menu-search-clear {
   border: none;
   background: transparent;
   cursor: pointer;
-  color: #64748b;
+  color: var(--rns-muted, #64748b);
   font-size: 20px;
   font-weight: 600;
   line-height: 1;
@@ -225,28 +247,28 @@
 .rns__option {
   padding: 8px 12px;
   cursor: pointer;
-  color: #0f172a;
+  color: var(--rns-text, #0f172a);
 }
 
 .rns__option[aria-selected='true'] {
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: rgb(var(--rns-accent, 59 130 246) / 0.12);
+  color: rgb(var(--rns-accent, 59 130 246));
 }
 
 .rns__option:hover {
-  background: #f1f5f9;
+  background: var(--rns-option-hover, #f1f5f9);
 }
 
 .rns__loading-message,
 .rns__no-options {
   padding: 10px 12px;
-  color: #64748b;
+  color: var(--rns-muted, #64748b);
   font-size: 13px;
 }
 
 .rns__wrapper.rns--is-disabled .rns__control {
-  background: #f8fafc;
-  border-color: #e2e8f0;
+  background: var(--rns-disabled-bg, #f8fafc);
+  border-color: rgb(var(--rns-border, 203 213 225) / 0.6);
   cursor: not-allowed;
   opacity: 0.85;
 }

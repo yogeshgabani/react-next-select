@@ -326,6 +326,22 @@ section.fade-up:has(.rns__menu) {
   section.fade-up h2 {
     font-size: 26px !important;
   }
+
+  /* Changelog — tighten card and typography */
+  #changelog {
+    padding: 22px 16px !important;
+  }
+  #changelog h3 {
+    font-size: 15.5px !important;
+  }
+  #changelog ul {
+    font-size: 13px !important;
+    line-height: 1.65 !important;
+    padding-left: 16px !important;
+  }
+  #changelog p {
+    font-size: 13.5px !important;
+  }
 }
 
 /* Small phone */
@@ -362,5 +378,57 @@ section.fade-up:has(.rns__menu) {
 
   section.fade-up h2 {
     font-size: 22px !important;
+  }
+
+  /* Changelog — compact on small phones */
+  #changelog {
+    padding: 18px 12px !important;
+  }
+  #changelog h2 {
+    font-size: 20px !important;
+  }
+  #changelog h3 {
+    font-size: 14.5px !important;
+    margin-bottom: 8px !important;
+  }
+  #changelog ul {
+    font-size: 12.5px !important;
+    line-height: 1.6 !important;
+    padding-left: 14px !important;
+  }
+  #changelog ul li {
+    margin-bottom: 4px !important;
+  }
+  #changelog p {
+    font-size: 13px !important;
+  }
+
+  /* Tighter timeline indent so bullet text gets more horizontal room */
+  #changelog .rns-changelog__timeline {
+    padding-left: 22px !important;
+    padding-right: 4px !important;
+  }
+  #changelog .rns-changelog__entry {
+    padding-left: 12px !important;
+    margin-bottom: 22px !important;
+  }
+  #changelog .rns-changelog__entry > span:first-child {
+    left: -22px !important;
+    width: 16px !important;
+    height: 16px !important;
+    top: 7px !important;
+  }
+
+  /* Smaller version pill + tags, tighter header row */
+  #changelog .rns-changelog__header {
+    gap: 6px !important;
+    margin-bottom: 6px !important;
+  }
+  #changelog .rns-changelog__version-pill {
+    padding: 3px 10px !important;
+    font-size: 12px !important;
+  }
+  #changelog .rns-changelog__date {
+    font-size: 12px !important;
   }
 }

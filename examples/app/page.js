@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Select } from 'react-next-select'
 
 const STATIC_OPTIONS = [
@@ -64,13 +65,72 @@ const FEATURES = [
 ]
 
 const THEME_PRESETS = [
-  { name: 'Purple',  rgb: '167 139 250', hex: '#a78bfa' },
-  { name: 'Indigo',  rgb: '129 140 248', hex: '#818cf8' },
-  { name: 'Blue',    rgb: '56 189 248',  hex: '#38bdf8' },
-  { name: 'Emerald', rgb: '52 211 153',  hex: '#34d399' },
-  { name: 'Amber',   rgb: '251 191 36',  hex: '#fbbf24' },
-  { name: 'Rose',    rgb: '244 114 182', hex: '#f472b6' },
+  { name: 'Purple', rgb: '167 139 250', hex: '#a78bfa' },
+  { name: 'Indigo', rgb: '129 140 248', hex: '#818cf8' },
+  { name: 'Blue', rgb: '56 189 248', hex: '#38bdf8' },
+  { name: 'Emerald', rgb: '52 211 153', hex: '#34d399' },
+  { name: 'Amber', rgb: '251 191 36', hex: '#fbbf24' },
+  { name: 'Rose', rgb: '244 114 182', hex: '#f472b6' },
 ]
+
+const VERSION_HISTORY = [
+  {
+    version: '0.2.0',
+    date: 'Jun 2026',
+    latest: true,
+    title: 'Themable via CSS variables',
+    tags: ['feature'],
+    items: [
+      'New `--rns-accent`, `--rns-border`, `--rns-bg`, `--rns-text`, `--rns-muted`, `--rns-radius` tokens.',
+      'One-line theming — override `--rns-accent: 167 139 250` on `:root` and the whole control retints.',
+      'Multi-value chips, focus ring, and selected option now derive from theme tokens.',
+      'Default stylesheet refactored with sensible fallbacks — no breaking change for existing users.',
+    ],
+  },
+  {
+    version: '0.1.2',
+    date: 'May 2026',
+    title: 'Custom dropdown icon',
+    tags: ['feature', 'demo'],
+    items: [
+      '`dropdownIcon` prop accepts a string, JSX element, or render function — wrapper handles 180° open/close rotation automatically.',
+      'Redesigned demo site with hero, features grid, Theme Studio, and Props Playground.',
+      'Netlify deploy config added.',
+    ],
+  },
+  {
+    version: '0.1.1',
+    date: 'Apr 2026',
+    title: 'Polish & demo enhancements',
+    tags: ['fix', 'demo'],
+    items: [
+      'Animated fixed navigation bar that drops in on scroll.',
+      'Scroll-to-top button.',
+      'Stability fixes for menu placement and outside-click handling.',
+    ],
+  },
+  {
+    version: '0.1.0',
+    date: 'Mar 2026',
+    title: 'Initial release',
+    tags: ['release'],
+    items: [
+      'Single and multi-select with chip rendering.',
+      'Synchronous and async options with race-safe loader.',
+      'Searchable dropdown — inline or dedicated in-menu search input.',
+      'Full keyboard navigation (Arrow / Home / End / Enter / Esc / Tab) with ARIA combobox semantics.',
+      'SSR-safe — works out of the box with Next.js App Router and Pages Router.',
+      'Hidden `<input name>` for native `<form>` submission.',
+    ],
+  },
+]
+
+const VERSION_TAG_COLORS = {
+  feature: { bg: 'rgba(167,139,250,0.15)', border: 'rgba(167,139,250,0.4)', text: '#c4b5fd' },
+  fix: { bg: 'rgba(52,211,153,0.15)', border: 'rgba(52,211,153,0.4)', text: '#6ee7b7' },
+  demo: { bg: 'rgba(56,189,248,0.15)', border: 'rgba(56,189,248,0.4)', text: '#7dd3fc' },
+  release: { bg: 'rgba(251,191,36,0.15)', border: 'rgba(251,191,36,0.4)', text: '#fcd34d' },
+}
 
 const hexToRgb = (hex) => {
   const h = hex.replace('#', '')
@@ -342,26 +402,25 @@ function PropsPlayground({ options }) {
           Toggle every option, live
         </h2>
         <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 15 }}>
-          Mix and match props — the snippet on the right updates as you go.
+          Mix and match props — the live preview and snippet below update as you go.
         </p>
       </div>
 
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+          display: 'flex',
+          flexDirection: 'column',
           gap: 24,
-          alignItems: 'start',
         }}
       >
-        {/* Left — controls */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {/* Top — controls (multi-column grid to use horizontal space) */}
+        <div>
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: 4,
+              marginBottom: 12,
             }}
           >
             <span
@@ -392,68 +451,78 @@ function PropsPlayground({ options }) {
             </button>
           </div>
 
-          <Toggle
-            label="isMulti"
-            checked={config.isMulti}
-            onChange={(v) => set('isMulti', v)}
-            hint="Allow multiple selections"
-          />
-          <Toggle
-            label="isSearchable"
-            checked={config.isSearchable}
-            onChange={(v) => set('isSearchable', v)}
-            hint="Type to filter options"
-          />
-          <Toggle
-            label="isClearable"
-            checked={config.isClearable}
-            onChange={(v) => set('isClearable', v)}
-            hint="Show ✕ button to clear"
-          />
-          <Toggle
-            label="isDisabled"
-            checked={config.isDisabled}
-            onChange={(v) => set('isDisabled', v)}
-            hint="Disable the entire control"
-          />
-          <Toggle
-            label="isLoading"
-            checked={config.isLoading}
-            onChange={(v) => set('isLoading', v)}
-            hint="Show loading state"
-          />
-          <Toggle
-            label="showMenuSearchInput"
-            checked={config.showMenuSearchInput}
-            onChange={(v) => set('showMenuSearchInput', v)}
-            hint="Dedicated search input inside menu"
-          />
-          <Toggle
-            label="closeMenuOnSelect"
-            checked={config.closeMenuOnSelect}
-            onChange={(v) => set('closeMenuOnSelect', v)}
-            hint="Close menu after picking"
-          />
-          <Segmented
-            label="menuPlacement"
-            value={config.menuPlacement}
-            options={['bottom', 'top']}
-            onChange={(v) => set('menuPlacement', v)}
-          />
-          <TextField
-            label="placeholder"
-            value={config.placeholder}
-            onChange={(v) => set('placeholder', v)}
-          />
-          <TextField
-            label="menuSearchPlaceholder"
-            value={config.menuSearchPlaceholder}
-            onChange={(v) => set('menuSearchPlaceholder', v)}
-            disabled={!config.showMenuSearchInput}
-          />
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns:
+                'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
+              gap: 10,
+              alignItems: 'start',
+            }}
+          >
+            <Toggle
+              label="isMulti"
+              checked={config.isMulti}
+              onChange={(v) => set('isMulti', v)}
+              hint="Allow multiple selections"
+            />
+            <Toggle
+              label="isSearchable"
+              checked={config.isSearchable}
+              onChange={(v) => set('isSearchable', v)}
+              hint="Type to filter options"
+            />
+            <Toggle
+              label="isClearable"
+              checked={config.isClearable}
+              onChange={(v) => set('isClearable', v)}
+              hint="Show ✕ button to clear"
+            />
+            <Toggle
+              label="isDisabled"
+              checked={config.isDisabled}
+              onChange={(v) => set('isDisabled', v)}
+              hint="Disable the entire control"
+            />
+            <Toggle
+              label="isLoading"
+              checked={config.isLoading}
+              onChange={(v) => set('isLoading', v)}
+              hint="Show loading state"
+            />
+            <Toggle
+              label="showMenuSearchInput"
+              checked={config.showMenuSearchInput}
+              onChange={(v) => set('showMenuSearchInput', v)}
+              hint="Dedicated search input inside menu"
+            />
+            <Toggle
+              label="closeMenuOnSelect"
+              checked={config.closeMenuOnSelect}
+              onChange={(v) => set('closeMenuOnSelect', v)}
+              hint="Close menu after picking"
+            />
+            <Segmented
+              label="menuPlacement"
+              value={config.menuPlacement}
+              options={['bottom', 'top']}
+              onChange={(v) => set('menuPlacement', v)}
+            />
+            <TextField
+              label="placeholder"
+              value={config.placeholder}
+              onChange={(v) => set('placeholder', v)}
+            />
+            <TextField
+              label="menuSearchPlaceholder"
+              value={config.menuSearchPlaceholder}
+              onChange={(v) => set('menuSearchPlaceholder', v)}
+              disabled={!config.showMenuSearchInput}
+            />
+          </div>
         </div>
 
-        {/* Right — Live preview + snippet */}
+        {/* Bottom — Live preview + snippet (full width) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <label
@@ -554,9 +623,8 @@ function PropsPlayground({ options }) {
                     ? 'rgba(34, 197, 94, 0.2)'
                     : 'rgb(var(--rns-accent) / 0.2)',
                   color: copied ? '#86efac' : 'var(--text-primary)',
-                  border: `1px solid ${
-                    copied ? 'rgba(34, 197, 94, 0.4)' : 'rgb(var(--rns-accent) / 0.5)'
-                  }`,
+                  border: `1px solid ${copied ? 'rgba(34, 197, 94, 0.4)' : 'rgb(var(--rns-accent) / 0.5)'
+                    }`,
                   borderRadius: 6,
                   cursor: 'pointer',
                   transition: 'all 0.2s',
@@ -664,9 +732,8 @@ function ThemeStudio({ themeOptions }) {
                     background: active
                       ? `rgba(${r}, ${g}, ${b}, 0.18)`
                       : 'rgb(var(--surface-rgb) / 0.04)',
-                    border: `1px solid ${
-                      active ? p.hex : 'rgb(var(--border-rgb) / 0.12)'
-                    }`,
+                    border: `1px solid ${active ? p.hex : 'rgb(var(--border-rgb) / 0.12)'
+                      }`,
                     boxShadow: active
                       ? `0 0 0 2px rgba(${r}, ${g}, ${b}, 0.18)`
                       : 'none',
@@ -762,9 +829,8 @@ function ThemeStudio({ themeOptions }) {
                   ? 'rgba(34, 197, 94, 0.2)'
                   : 'rgb(var(--rns-accent) / 0.2)',
                 color: copied ? '#86efac' : 'var(--text-primary)',
-                border: `1px solid ${
-                  copied ? 'rgba(34, 197, 94, 0.4)' : 'rgb(var(--rns-accent) / 0.5)'
-                }`,
+                border: `1px solid ${copied ? 'rgba(34, 197, 94, 0.4)' : 'rgb(var(--rns-accent) / 0.5)'
+                  }`,
                 borderRadius: 6,
                 cursor: 'pointer',
                 transition: 'all 0.2s',
@@ -1038,8 +1104,8 @@ export default function Page() {
           background: isSelected
             ? 'rgb(var(--rns-accent) / 0.35)'
             : isFocused
-            ? 'rgb(var(--rns-accent) / 0.15)'
-            : 'transparent',
+              ? 'rgb(var(--rns-accent) / 0.15)'
+              : 'transparent',
           display: 'flex',
           alignItems: 'center',
           gap: 12,
@@ -1330,9 +1396,8 @@ export default function Page() {
                         fontWeight: 600,
                         background: isCopied ? 'rgba(34, 197, 94, 0.2)' : 'rgb(var(--rns-accent) / 0.22)',
                         color: isCopied ? '#86efac' : 'var(--text-primary)',
-                        border: `1px solid ${
-                          isCopied ? 'rgba(34, 197, 94, 0.4)' : 'rgb(var(--rns-accent) / 0.5)'
-                        }`,
+                        border: `1px solid ${isCopied ? 'rgba(34, 197, 94, 0.4)' : 'rgb(var(--rns-accent) / 0.5)'
+                          }`,
                         borderRadius: 6,
                         cursor: 'pointer',
                         transition: 'all 0.2s',
@@ -1594,11 +1659,10 @@ export default function Page() {
                         background: active
                           ? 'rgb(var(--rns-accent) / 0.25)'
                           : 'rgb(var(--surface-rgb) / 0.04)',
-                        border: `1px solid ${
-                          active
-                            ? 'rgb(var(--rns-accent) / 0.6)'
-                            : 'rgb(var(--border-rgb) / 0.12)'
-                        }`,
+                        border: `1px solid ${active
+                          ? 'rgb(var(--rns-accent) / 0.6)'
+                          : 'rgb(var(--border-rgb) / 0.12)'
+                          }`,
                         borderRadius: 8,
                         cursor: 'pointer',
                         transition: 'all 0.2s',
@@ -1636,6 +1700,222 @@ export default function Page() {
                 isClearable
               />
             </DemoCard>
+          </div>
+        </section>
+
+        {/* Version History — timeline of releases */}
+        <section
+          id="changelog"
+          className="fade-up"
+          style={{
+            marginBottom: 80,
+            padding: 'clamp(20px, 4vw, 32px)',
+            background: 'rgb(var(--surface-rgb) / 0.04)',
+            border: '1px solid rgb(var(--border-rgb) / 0.08)',
+            borderRadius: 24,
+            backdropFilter: 'blur(12px)',
+          }}
+        >
+          <div style={{ textAlign: 'center', marginBottom: 36 }}>
+            <Tag color="#fbbf24">📜 Changelog</Tag>
+            <h2
+              style={{
+                margin: '14px 0 8px',
+                fontSize: 32,
+                fontWeight: 800,
+                color: 'var(--text-primary)',
+                letterSpacing: -0.5,
+              }}
+            >
+              Version History
+            </h2>
+            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 15 }}>
+              What changed in each release — newest at the top.
+            </p>
+          </div>
+
+          <div
+            className="rns-changelog__timeline"
+            style={{
+              position: 'relative',
+              paddingLeft: 28,
+              paddingRight: 8,
+              paddingTop: 20,
+              paddingBottom: 20,
+              maxHeight: 'min(60vh, 520px)',
+              overflowY: 'auto',
+              // Soft fade hints there's more content above/below
+              maskImage:
+                'linear-gradient(180deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%)',
+              WebkitMaskImage:
+                'linear-gradient(180deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%)',
+            }}
+          >
+            {/* Vertical timeline rail */}
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                top: 8,
+                bottom: 8,
+                left: 9,
+                width: 2,
+                background:
+                  'linear-gradient(180deg, rgb(var(--rns-accent) / 0.55) 0%, rgb(var(--rns-accent) / 0.15) 100%)',
+                borderRadius: 2,
+              }}
+            />
+
+            {VERSION_HISTORY.map((v) => (
+              <article
+                key={v.version}
+                className="rns-changelog__entry"
+                style={{
+                  position: 'relative',
+                  marginBottom: 28,
+                  paddingLeft: 18,
+                }}
+              >
+                {/* Timeline node */}
+                <span
+                  aria-hidden
+                  style={{
+                    position: 'absolute',
+                    left: -28,
+                    top: 6,
+                    width: 20,
+                    height: 20,
+                    borderRadius: '50%',
+                    background: v.latest
+                      ? 'linear-gradient(135deg, #a855f7, #ec4899)'
+                      : 'rgb(var(--surface-strong-rgb))',
+                    border: v.latest
+                      ? '2px solid rgba(167,139,250,0.5)'
+                      : '2px solid rgb(var(--rns-accent) / 0.4)',
+                    boxShadow: v.latest
+                      ? '0 0 0 4px rgba(167,139,250,0.18), 0 0 16px rgba(168,85,247,0.5)'
+                      : 'none',
+                  }}
+                />
+
+                {/* Header row: version + date + tags */}
+                <div
+                  className="rns-changelog__header"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: 10,
+                    marginBottom: 8,
+                  }}
+                >
+                  <span
+                    className="rns-changelog__version-pill"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '4px 12px',
+                      borderRadius: 999,
+                      fontSize: 13,
+                      fontWeight: 700,
+                      letterSpacing: 0.3,
+                      fontFamily:
+                        '"JetBrains Mono", ui-monospace, SFMono-Regular, monospace',
+                      background: v.latest
+                        ? 'linear-gradient(135deg, #a855f7, #ec4899)'
+                        : 'rgb(var(--rns-accent) / 0.15)',
+                      color: v.latest ? '#fff' : 'var(--text-primary)',
+                      border: v.latest
+                        ? 'none'
+                        : '1px solid rgb(var(--rns-accent) / 0.35)',
+                      boxShadow: v.latest
+                        ? '0 4px 14px rgba(168,85,247,0.35)'
+                        : 'none',
+                    }}
+                  >
+                    v{v.version}
+                  </span>
+                  {v.latest && (
+                    <span
+                      style={{
+                        padding: '3px 9px',
+                        borderRadius: 6,
+                        fontSize: 10,
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        letterSpacing: 0.6,
+                        background: 'rgba(52,211,153,0.18)',
+                        color: '#6ee7b7',
+                        border: '1px solid rgba(52,211,153,0.4)',
+                      }}
+                    >
+                      ● Latest
+                    </span>
+                  )}
+                  <span
+                    className="rns-changelog__date"
+                    style={{
+                      fontSize: 13,
+                      color: 'var(--text-muted)',
+                    }}
+                  >
+                    {v.date}
+                  </span>
+                  <span style={{ flex: 1 }} />
+                  {v.tags?.map((t) => {
+                    const c = VERSION_TAG_COLORS[t] || VERSION_TAG_COLORS.feature
+                    return (
+                      <span
+                        key={t}
+                        style={{
+                          padding: '3px 10px',
+                          borderRadius: 6,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          textTransform: 'capitalize',
+                          background: c.bg,
+                          color: c.text,
+                          border: `1px solid ${c.border}`,
+                        }}
+                      >
+                        {t}
+                      </span>
+                    )
+                  })}
+                </div>
+
+                {/* Title */}
+                <h3
+                  style={{
+                    margin: '0 0 10px',
+                    fontSize: 17,
+                    fontWeight: 700,
+                    color: 'var(--text-primary)',
+                    letterSpacing: -0.2,
+                  }}
+                >
+                  {v.title}
+                </h3>
+
+                {/* Bullet items */}
+                <ul
+                  style={{
+                    margin: 0,
+                    paddingLeft: 18,
+                    color: 'var(--text-secondary)',
+                    fontSize: 13.5,
+                    lineHeight: 1.7,
+                  }}
+                >
+                  {v.items.map((line, i) => (
+                    <li key={i} style={{ marginBottom: 2 }}>
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -1791,6 +2071,113 @@ export default function Page() {
                 }}
               />
 
+              {/* Social card — horizontal profile row, wraps on small screens */}
+              <div
+                style={{
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 18,
+                  padding: "18px 22px",
+                  marginBottom: 20,
+                  borderRadius: 16,
+                  border: "1px solid rgb(var(--border-rgb) / 0.12)",
+                  background:
+                    "radial-gradient(120% 140% at 0% 50%, rgba(168, 85, 247, 0.14), transparent 55%), radial-gradient(120% 140% at 100% 50%, rgba(56, 189, 248, 0.10), transparent 55%), rgb(var(--surface-rgb) / 0.03)",
+                  overflow: "hidden",
+                }}
+              >
+                {/* Top gradient hairline */}
+                <div
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: "10%",
+                    right: "10%",
+                    height: 2,
+                    borderRadius: 2,
+                    background:
+                      "linear-gradient(90deg, transparent, #a855f7, #ec4899, #38bdf8, transparent)",
+                    opacity: 0.7,
+                  }}
+                />
+
+                {/* Left: avatar + text — kept together so they wrap as a unit */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 14,
+                    minWidth: 0,
+                    flex: "1 1 auto",
+                  }}
+                >
+                  {/* Avatar-style monogram */}
+                  <div
+                    aria-hidden
+                    style={{
+                      flex: "0 0 auto",
+                      width: 46,
+                      height: 46,
+                      borderRadius: "50%",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 17,
+                      fontWeight: 700,
+                      letterSpacing: 0.5,
+                      color: "#fff",
+                      background:
+                        "linear-gradient(135deg, #a855f7 0%, #ec4899 55%, #38bdf8 100%)",
+                      boxShadow:
+                        "0 8px 24px rgba(168, 85, 247, 0.35), 0 0 0 4px rgba(168, 85, 247, 0.12)",
+                    }}
+                  >
+                    YG
+                  </div>
+
+                  {/* Heading + subtitle */}
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                      minWidth: 0,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 700,
+                        letterSpacing: -0.2,
+                        background:
+                          "linear-gradient(135deg, #a855f7, #ec4899 55%, #38bdf8)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                      }}
+                    >
+                      Connect with Yogesh
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 12.5,
+                        fontWeight: 400,
+                        color: "var(--text-muted, #64748b)",
+                      }}
+                    >
+                      Follow for updates, releases &amp; new components
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right: social icons */}
+                <SocialIcons size={38} />
+              </div>
+
               {/* Bottom row: license + credit */}
               <div
                 style={{
@@ -1923,4 +2310,426 @@ export default function Page() {
       </button>
     </>
   )
+}
+
+
+
+
+
+
+const SOCIAL_LINKS = [
+  {
+    key: "whatsapp",
+    label: "WhatsApp",
+    href: process.env.NEXT_PUBLIC_SOCIAL_WHATSAPP || "",
+    brand: "#25D366",
+    icon: (
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+      </svg>
+    ),
+  },
+  {
+    key: "instagram",
+    label: "Instagram",
+    href: process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM || "",
+    brand: "#E4405F",
+    icon: (
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.336 3.608 1.311.975.975 1.249 2.242 1.311 3.608.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.062 1.366-.336 2.633-1.311 3.608-.975.975-2.242 1.249-3.608 1.311-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.336-3.608-1.311-.975-.975-1.249-2.242-1.311-3.608-.058-1.266-.07-1.646-.07-4.85s.012-3.584.07-4.85c.062-1.366.336-2.633 1.311-3.608.975-.975 2.242-1.249 3.608-1.311 1.266-.058 1.646-.07 4.85-.07M12 0C8.741 0 8.332.014 7.052.072 5.197.157 3.355.673 2.014 2.014.673 3.355.157 5.197.072 7.052.014 8.332 0 8.741 0 12s.014 3.668.072 4.948c.085 1.855.601 3.697 1.942 5.038 1.341 1.341 3.183 1.857 5.038 1.942C8.332 23.986 8.741 24 12 24s3.668-.014 4.948-.072c1.855-.085 3.697-.601 5.038-1.942 1.341-1.341 1.857-3.183 1.942-5.038.058-1.28.072-1.689.072-4.948s-.014-3.668-.072-4.948c-.085-1.855-.601-3.697-1.942-5.038C20.645.673 18.803.157 16.948.072 15.668.014 15.259 0 12 0Zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324ZM12 16a4 4 0 110-8 4 4 0 010 8Zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881Z" />
+      </svg>
+    ),
+  },
+  {
+    key: "facebook",
+    label: "Facebook",
+    href: process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK || "",
+    brand: "#1877F2",
+    icon: (
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073c0 6.019 4.388 11.005 10.125 11.927v-8.437H7.078v-3.49h3.047V9.413c0-3.017 1.792-4.687 4.533-4.687 1.312 0 2.686.235 2.686.235v2.97h-1.514c-1.491 0-1.956.93-1.956 1.886v2.255h3.328l-.532 3.49h-2.796V24C19.612 23.078 24 18.092 24 12.073Z" />
+      </svg>
+    ),
+  },
+  {
+    key: "youtube",
+    label: "YouTube",
+    href: process.env.NEXT_PUBLIC_SOCIAL_YOUTUBE || "",
+    brand: "#FF0000",
+    icon: (
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814ZM9.545 15.568V8.432L15.818 12l-6.273 3.568Z" />
+      </svg>
+    ),
+  },
+  {
+    key: "twitter",
+    label: "X (Twitter)",
+    href: process.env.NEXT_PUBLIC_SOCIAL_TWITTER || "",
+    brand: "#0F1419",
+    brandDark: "#E7E9EA",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.45-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77Z" />
+      </svg>
+    ),
+  },
+  {
+    key: "linkedin",
+    label: "LinkedIn",
+    href: process.env.NEXT_PUBLIC_SOCIAL_LINKEDIN || "",
+    brand: "#0A66C2",
+    icon: (
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286ZM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.063 2.063 0 112.063 2.065Zm1.782 13.019H3.555V9h3.564v11.452ZM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003Z" />
+      </svg>
+    ),
+  },
+  {
+    key: "github",
+    label: "GitHub",
+    href: process.env.NEXT_PUBLIC_SOCIAL_GITHUB || "",
+    brand: "#24292F",
+    brandDark: "#F0F6FC",
+    icon: (
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23a11.52 11.52 0 013-.405c1.02.005 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12Z" />
+      </svg>
+    ),
+  },
+];
+
+
+function SocialIcons({ size = 36 }) {
+  // Page tracks theme on <html data-theme>. Read it from the DOM so this
+  // component works without a ThemeProvider, and re-read on toggle.
+  const [isDark, setIsDark] = useState(true);
+  useEffect(() => {
+    const html = document.documentElement;
+    const read = () => setIsDark((html.dataset.theme || "dark") === "dark");
+    read();
+    const obs = new MutationObserver(read);
+    obs.observe(html, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => obs.disconnect();
+  }, []);
+  const [missing, setMissing] = useState(null);
+
+  // ESC closes the unavailable-link modal
+  useEffect(() => {
+    if (!missing) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") setMissing(null);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [missing]);
+
+  return (
+    <>
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
+      >
+        {SOCIAL_LINKS.map((s) => {
+          const hoverColor = isDark && s.brandDark ? s.brandDark : s.brand;
+          const available = Boolean(s.href);
+          return (
+            <a
+              key={s.key}
+              href={available ? s.href : "#"}
+              target={available ? "_blank" : undefined}
+              rel="noreferrer noopener"
+              aria-label={available ? s.label : `${s.label} — not available`}
+              title={available ? s.label : `${s.label} — not configured yet`}
+              onClick={(e) => {
+                if (!available) {
+                  e.preventDefault();
+                  setMissing(s);
+                }
+              }}
+              style={{
+                width: size,
+                height: size,
+                borderRadius: 999,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "inherit",
+                background: "color-mix(in srgb, currentColor 4%, transparent)",
+                border:
+                  "1px solid color-mix(in srgb, currentColor 12%, transparent)",
+                textDecoration: "none",
+                transition: "all 180ms ease",
+                opacity: available ? 1 : 0.65,
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = `color-mix(in srgb, ${hoverColor} 14%, transparent)`;
+                e.currentTarget.style.borderColor = `color-mix(in srgb, ${hoverColor} 55%, transparent)`;
+                e.currentTarget.style.color = hoverColor;
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background =
+                  "color-mix(in srgb, currentColor 4%, transparent)";
+                e.currentTarget.style.borderColor =
+                  "color-mix(in srgb, currentColor 12%, transparent)";
+                e.currentTarget.style.color = "inherit";
+                e.currentTarget.style.transform = "";
+              }}
+            >
+              {s.icon}
+            </a>
+          );
+        })}
+      </div>
+      {missing && (
+        <SocialUnavailableModal
+          social={missing}
+          isDark={isDark}
+          onClose={() => setMissing(null)}
+        />
+      )}
+    </>
+  );
+}
+
+function SocialUnavailableModal({
+  social,
+  isDark,
+  onClose,
+}) {
+  // Use brandDark in dark mode when available — keeps GitHub/Twitter
+  // icons (which have near-black brand colors) visible on the dark modal bg.
+  const iconColor = isDark && social.brandDark ? social.brandDark : social.brand;
+  // Portal target — only available after mount (SSR-safe)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Prevent body scroll while modal is open
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  if (!mounted) return null;
+
+  // Render into <body> so the modal escapes any ancestor with
+  // backdrop-filter / transform / filter (which would otherwise
+  // trap position:fixed inside that ancestor's containing block).
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="rnl-social-modal-title"
+      aria-describedby="rnl-social-modal-desc"
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 200,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(0, 0, 0, 0.58)",
+        backdropFilter: "blur(6px)",
+        WebkitBackdropFilter: "blur(6px)",
+        padding: 16,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: "relative",
+          maxWidth: 380,
+          width: "100%",
+          background: "rgb(var(--surface-strong-rgb) / 0.98)",
+          color: "var(--text-primary)",
+          borderRadius: 16,
+          padding: "32px 24px 24px",
+          border:
+            "1px solid color-mix(in srgb, currentColor 12%, transparent)",
+          boxShadow: "0 24px 60px rgba(0, 0, 0, 0.4)",
+          textAlign: "center",
+          overflow: "hidden",
+        }}
+      >
+        {/* Top gradient border */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 3,
+            background:
+              "linear-gradient(90deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)",
+          }}
+        />
+
+        {/* Close X (top-right) */}
+        <button
+          aria-label="Close"
+          onClick={onClose}
+          style={{
+            position: "absolute",
+            top: 10,
+            right: 10,
+            width: 30,
+            height: 30,
+            borderRadius: 8,
+            border: "none",
+            background: "transparent",
+            color: "inherit",
+            cursor: "pointer",
+            fontSize: 20,
+            lineHeight: 1,
+            opacity: 0.55,
+            transition: "opacity 160ms, background 160ms",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = "1";
+            e.currentTarget.style.background =
+              "color-mix(in srgb, currentColor 8%, transparent)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = "0.55";
+            e.currentTarget.style.background = "transparent";
+          }}
+        >
+          ×
+        </button>
+
+        {/* Big social icon */}
+        <div
+          style={{
+            width: 64,
+            height: 64,
+            margin: "0 auto 16px",
+            borderRadius: "50%",
+            background: `color-mix(in srgb, ${iconColor} 18%, transparent)`,
+            border: `1px solid color-mix(in srgb, ${iconColor} 35%, transparent)`,
+            color: iconColor,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transform: "scale(1.7)",
+              transformOrigin: "center",
+              lineHeight: 0,
+            }}
+          >
+            {social.icon}
+          </span>
+        </div>
+
+        <h3
+          id="rnl-social-modal-title"
+          style={{
+            margin: "0 0 8px",
+            fontSize: 18,
+            fontWeight: 700,
+            letterSpacing: "-0.01em",
+          }}
+        >
+          Data Not Available
+        </h3>
+        <p
+          id="rnl-social-modal-desc"
+          style={{
+            margin: "0 0 20px",
+            fontSize: 13,
+            color: "var(--text-muted, #94a3b8)",
+            lineHeight: 1.55,
+          }}
+        >
+          The <strong style={{ color: "inherit" }}>{social.label}</strong> link
+          hasn&apos;t been configured yet. Please check back later.
+        </p>
+
+        <button
+          onClick={onClose}
+          style={{
+            padding: "8px 22px",
+            borderRadius: 999,
+            border: "none",
+            background:
+              "linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)",
+            color: "#fff",
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: "pointer",
+            boxShadow: "0 8px 24px rgba(168, 85, 247, 0.35)",
+            transition: "transform 160ms",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-1px)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "";
+          }}
+        >
+          Got it
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
 }
