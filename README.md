@@ -3,11 +3,11 @@
 
 # react-next-select
 
-**The most feature-rich React file upload & dropzone library.**
+**Accessible, SSR-safe React Select for Next.js.**
 
-Drag & drop · chunk uploads · cloud adapters · 21+ UI variants · i18n in 23 locales · a11y · SSR-safe · TypeScript-first.
+Single · multi · async · searchable · themable via CSS variables · keyboard-navigable · zero runtime deps · ESM + CJS.
 
-[![npm](https://img.shields.io/npm/v/react-upload-pro.svg?color=4f46e5&style=flat-square)](https://www.npmjs.com/package/react-next-select)
+[![npm](https://img.shields.io/npm/v/react-next-select.svg?color=4f46e5&style=flat-square)](https://www.npmjs.com/package/react-next-select)
 [![types](https://img.shields.io/badge/types-included-3178c6?style=flat-square)](#typescript)
 [![license](https://img.shields.io/badge/license-MIT-emerald?style=flat-square)](./LICENSE)
 [![bundle](https://img.shields.io/badge/tree--shakable-✓-10b981?style=flat-square)](#performance)
@@ -60,6 +60,51 @@ Import the default stylesheet once in your app:
 ```js
 import 'react-next-select/style.css'
 ```
+
+> 💡 **Want a custom accent color (purple, indigo, emerald, anything)?**
+> Just drop these 3 lines into your global CSS — the focus ring, selected option, hover, multi-value chips, scrollbar, and search icon all retint together. **No class overrides, no `!important`, nothing else to learn.**
+
+```css
+/* 🎨 Paste in app/globals.css (Next.js) or index.css (CRA/Vite) */
+:root {
+  --rns-accent: 167 139 250; /* purple — RGB triplet, no commas */
+}
+```
+
+<details>
+<summary><strong>🎨 More presets — click to expand (purple, indigo, blue, emerald, amber, rose)</strong></summary>
+
+```css
+/* Purple  */ :root { --rns-accent: 167 139 250; }
+/* Indigo  */ :root { --rns-accent: 99  102 241; }
+/* Blue    */ :root { --rns-accent: 56  189 248; }
+/* Emerald */ :root { --rns-accent: 52  211 153; }
+/* Amber   */ :root { --rns-accent: 251 191 36;  }
+/* Rose    */ :root { --rns-accent: 244 114 182; }
+```
+
+Try them live → **[Theme Studio on the demo site](https://react-next-select.netlify.app/#theme-studio)** (pick a preset or paste any hex; the snippet updates and you can copy it).
+
+</details>
+
+<details>
+<summary><strong>🌙 Dark mode — click to expand</strong></summary>
+
+```css
+/* Apply on :root or a [data-theme='dark'] wrapper */
+[data-theme='dark'] {
+  --rns-accent: 167 139 250;
+  --rns-bg: #0f172a;
+  --rns-text: #f8fafc;
+  --rns-muted: #94a3b8;
+  --rns-option-hover: #1e293b;
+  --rns-disabled-bg: #1e293b;
+}
+```
+
+</details>
+
+> ➡️ Full variable reference and class-override / inline-style strategies are in the [**Styling**](#styling) section below.
 
 ## Next.js Usage
 
@@ -399,14 +444,15 @@ That one line restyles the focus border, focus ring, multi-value chips, and sele
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `--rns-accent` | `59 130 246` (RGB triplet) | Focus border + ring, selected option, multi-value chip |
-| `--rns-border` | `203 213 225` (RGB triplet) | Control + menu border |
+| `--rns-accent` | `59 130 246` (RGB triplet) | Focus border + ring, selected option, hover, multi-value chip, scrollbar, search icon |
+| `--rns-border` | `203 213 225` (RGB triplet) | Legacy border fallback (control/menu borders now derive from `--rns-accent`) |
 | `--rns-bg` | `#fff` | Control + menu background |
 | `--rns-text` | `#0f172a` | Main text color |
 | `--rns-muted` | `#64748b` | Placeholder, icons, helper text |
-| `--rns-option-hover` | `#f1f5f9` | Option hover background |
+| `--rns-option-hover` | `rgb(accent / 0.18)` | Option hover background (overrides the accent default) |
 | `--rns-disabled-bg` | `#f8fafc` | Disabled control background |
-| `--rns-radius` | `6px` | Corner radius |
+| `--rns-radius` | `10px` | Corner radius (control, menu, search input) |
+| `--rns-control-min-height` | `44px` | Minimum height of the control |
 
 Color variables that need alpha transparency (`--rns-accent`, `--rns-border`) are expressed as **space-separated RGB triplets** so they can be combined with `rgb(... / <alpha>)` internally — write `167 139 250`, not `rgb(167, 139, 250)` or `#a78bfa`.
 

@@ -75,6 +75,24 @@ export function DefaultDropdownIndicator(props) {
   )
 }
 
+const DefaultClearIcon = (
+  <svg
+    viewBox="0 0 20 20"
+    width="14"
+    height="14"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path
+      d="M6 6l8 8M14 6l-8 8"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+)
+
 export function DefaultClearIndicator(props) {
   const { innerProps } = props
   return (
@@ -84,7 +102,9 @@ export function DefaultClearIndicator(props) {
       aria-label="Clear value"
       {...innerProps}
     >
-      ×
+      <span className="rns__clear-icon" aria-hidden="true">
+        {DefaultClearIcon}
+      </span>
     </button>
   )
 }
@@ -148,13 +168,38 @@ export function DefaultSingleValue(props) {
   return <div className="rns__single-value">{children ?? data?.label}</div>
 }
 
+const MultiValueRemoveIcon = (
+  <svg
+    viewBox="0 0 20 20"
+    width="12"
+    height="12"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path
+      d="M6 6l8 8M14 6l-8 8"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+    />
+  </svg>
+)
+
 export function DefaultMultiValue(props) {
   const { children, data, removeProps } = props
   return (
     <div className="rns__multi-value">
       <span className="rns__multi-value__label">{children ?? data?.label}</span>
-      <button type="button" className="rns__multi-value__remove" {...removeProps}>
-        ×
+      <button
+        type="button"
+        className="rns__multi-value__remove"
+        aria-label="Remove"
+        {...removeProps}
+      >
+        <span className="rns__multi-value__remove-icon" aria-hidden="true">
+          {MultiValueRemoveIcon}
+        </span>
       </button>
     </div>
   )

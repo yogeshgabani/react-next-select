@@ -75,9 +75,26 @@ const THEME_PRESETS = [
 
 const VERSION_HISTORY = [
   {
-    version: '0.2.1',
+    version: '0.3.0',
     date: 'Jun 2026',
     latest: true,
+    title: 'Demo-parity default styles',
+    tags: ['feature', 'fix'],
+    items: [
+      'Default control now matches the demo look out of the box — 44px height, 10px radius, accent-tinted borders, soft focus glow.',
+      'Premium menu shadow + 10px radius; rounded option pills with margin (hover/focus look like the demo).',
+      'Multi-value chip background bumped to 25% accent + 35% accent border for clear visibility on dark themes.',
+      'Scoped scrollbar styling on `.rns__menu-list` (accent thumb, transparent track) — no more browser-default thick gray bar.',
+      'Clear (×) and multi-value remove (×) replaced with crisp SVG icons that align perfectly with the chevron.',
+      'Indicators standardized to 32×32 fixed boxes so the clear and dropdown buttons are pixel-aligned.',
+      'New `rns__option--focused` and `rns__option--selected` class hooks for keyboard-nav and selection styling.',
+      'New `--rns-control-min-height` CSS variable; `--rns-radius` default bumped from 6px → 10px.',
+      'Smooth 0.15s–0.2s transitions on borders, backgrounds, colors, and shadows everywhere.',
+    ],
+  },
+  {
+    version: '0.2.1',
+    date: 'Jun 2026',
     title: 'Themable via CSS variables',
     tags: ['feature'],
     items: [
@@ -1276,7 +1293,7 @@ export default function Page() {
         {/* Hero */}
         <section className="fade-up" style={{ textAlign: 'center', marginBottom: 80 }}>
           <div style={{ display: 'inline-flex', marginBottom: 20 }}>
-            <Tag color="#a78bfa">V0.2.1 · Now Available</Tag>
+            <Tag color="#a78bfa">V0.3.0 · Now Available</Tag>
           </div>
           <h1
             style={{
