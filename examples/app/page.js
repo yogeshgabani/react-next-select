@@ -75,7 +75,7 @@ const THEME_PRESETS = [
 
 const VERSION_HISTORY = [
   {
-    version: '0.2.0',
+    version: '0.2.1',
     date: 'Jun 2026',
     latest: true,
     title: 'Themable via CSS variables',
@@ -1276,7 +1276,7 @@ export default function Page() {
         {/* Hero */}
         <section className="fade-up" style={{ textAlign: 'center', marginBottom: 80 }}>
           <div style={{ display: 'inline-flex', marginBottom: 20 }}>
-            <Tag color="#a78bfa">V0.1.2 · Now Available</Tag>
+            <Tag color="#a78bfa">V0.2.1 · Now Available</Tag>
           </div>
           <h1
             style={{
