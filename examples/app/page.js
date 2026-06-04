@@ -75,7 +75,7 @@ const THEME_PRESETS = [
 
 const VERSION_HISTORY = [
   {
-    version: '0.3.0',
+    version: '0.3.1',
     date: 'Jun 2026',
     latest: true,
     title: 'Demo-parity default styles',
@@ -1295,7 +1295,7 @@ export default function Page() {
         {/* Hero */}
         <section className="fade-up" style={{ textAlign: 'center', marginBottom: 80 }}>
           <div style={{ display: 'inline-flex', marginBottom: 20 }}>
-            <Tag color="#a78bfa">V0.3.0 · Now Available</Tag>
+            <Tag color="#a78bfa">V0.3.1 · Now Available</Tag>
           </div>
           <h1
             style={{
