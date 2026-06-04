@@ -118,9 +118,16 @@ export function DefaultMenuList(props) {
 }
 
 export function DefaultOption(props) {
-  const { innerProps, children, data } = props
+  const { innerProps, children, data, isSelected, isFocused } = props
+  const className = [
+    'rns__option',
+    isFocused && 'rns__option--focused',
+    isSelected && 'rns__option--selected',
+  ]
+    .filter(Boolean)
+    .join(' ')
   return (
-    <div className="rns__option" role="option" {...innerProps}>
+    <div className={className} role="option" {...innerProps}>
       {children ?? data?.label}
     </div>
   )
