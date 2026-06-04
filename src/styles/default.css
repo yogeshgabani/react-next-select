@@ -180,12 +180,20 @@
   transform: rotate(180deg);
 }
 
+/* Open dropdown auto-elevates its wrapper so the menu escapes
+   sibling-card stacking contexts (e.g. when a parent uses
+   backdrop-filter, transform, or opacity). */
+.rns__wrapper:has(.rns__menu) {
+  z-index: 100;
+  position: relative;
+}
+
 .rns__menu {
   position: absolute;
   left: 0;
   right: 0;
   top: 100%;
-  z-index: 30;
+  z-index: 100;
   margin-top: 4px;
 }
 
@@ -201,16 +209,21 @@
   border-radius: var(--rns-radius, 10px);
   background: var(--rns-bg, #fff);
   box-shadow: 0 20px 40px -8px rgb(0 0 0 / 0.18), 0 6px 12px -4px rgb(0 0 0 / 0.08);
-  max-height: 280px;
+  max-height: var(--rns-menu-max-height, 320px);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .rns__menu-list {
-  max-height: 240px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   padding: 6px;
   scrollbar-width: thin;
   scrollbar-color: rgb(var(--rns-accent, 59 130 246) / 0.45) transparent;
+  scroll-padding-bottom: 8px;
+  overscroll-behavior: contain;
 }
 
 .rns__menu-list::-webkit-scrollbar {

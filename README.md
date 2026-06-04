@@ -453,6 +453,7 @@ That one line restyles the focus border, focus ring, multi-value chips, and sele
 | `--rns-disabled-bg` | `#f8fafc` | Disabled control background |
 | `--rns-radius` | `10px` | Corner radius (control, menu, search input) |
 | `--rns-control-min-height` | `44px` | Minimum height of the control |
+| `--rns-menu-max-height` | `320px` | Maximum height of the dropdown menu (includes optional search input) |
 
 Color variables that need alpha transparency (`--rns-accent`, `--rns-border`) are expressed as **space-separated RGB triplets** so they can be combined with `rgb(... / <alpha>)` internally — write `167 139 250`, not `rgb(167, 139, 250)` or `#a78bfa`.
 
