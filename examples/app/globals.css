@@ -123,6 +123,18 @@ pre {
   animation: fadeUp 0.6s ease both;
 }
 
+@keyframes rns-live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.75);
+  }
+}
+
 @keyframes rns-nav-drop {
   from {
     opacity: 0;

@@ -1,17 +1,27 @@
 {
   "name": "react-next-select",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Accessible, SSR-safe React Select for Next.js — single/multi, async, customizable",
   "author": "Yogesh Gabani",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yogeshgabani/react-next-select.git"
+  },
+  "homepage": "https://github.com/yogeshgabani/react-next-select#readme",
+  "bugs": {
+    "url": "https://github.com/yogeshgabani/react-next-select/issues"
+  },
   "type": "module",
   "sideEffects": [
     "**/*.css"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
@@ -23,18 +33,22 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && node -e \"require('fs').copyFileSync('src/index.d.ts','dist/index.d.ts')\"",
     "dev": "vite build --watch",
-    "prepublishOnly": "npm run build"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prepublishOnly": "npm run typecheck && npm run build"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
     "@vitejs/plugin-react": "^4.3.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "typescript": "^7.0.2",
     "vite": "^6.0.3"
   },
   "keywords": [
@@ -51,7 +65,17 @@
     "async-select",
     "searchable",
     "accessible",
-    "a11y"
+    "a11y",
+    "react-component",
+    "form",
+    "form-input",
+    "custom-select",
+    "single-select",
+    "select-dropdown",
+    "select-input",
+    "ui-component",
+    "app-router",
+    "typescript"
   ],
   "engines": {
     "node": ">=16"

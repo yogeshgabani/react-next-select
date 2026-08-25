@@ -8,6 +8,7 @@
 Single · multi · async · searchable · themable via CSS variables · keyboard-navigable · zero runtime deps · ESM + CJS.
 
 [![npm](https://img.shields.io/npm/v/react-next-select.svg?color=4f46e5&style=flat-square)](https://www.npmjs.com/package/react-next-select)
+[![downloads](https://img.shields.io/npm/dm/react-next-select.svg?color=4f46e5&style=flat-square)](https://www.npmjs.com/package/react-next-select)
 [![types](https://img.shields.io/badge/types-included-3178c6?style=flat-square)](#typescript)
 [![license](https://img.shields.io/badge/license-MIT-emerald?style=flat-square)](./LICENSE)
 [![bundle](https://img.shields.io/badge/tree--shakable-✓-10b981?style=flat-square)](#performance)
@@ -644,6 +645,37 @@ function MyOption({ innerProps, data, isFocused }) {
 ```
 
 Overridable component keys: `Control`, `ValueContainer`, `IndicatorsContainer`, `DropdownIndicator`, `ClearIndicator`, `Input`, `Menu`, `MenuList`, `Option`, `LoadingMessage`, `NoOptionsMessage`, `SingleValue`, `MultiValue`.
+
+## TypeScript
+
+Type definitions ship in the package (`dist/index.d.ts`, wired via `types`/`exports["."].types` in `package.json`) — no `@types/react-next-select` install needed.
+
+```tsx
+import { Select, SelectOption } from 'react-next-select'
+
+interface City extends SelectOption {
+  value: string
+  label: string
+}
+
+const cities: City[] = [
+  { value: 'ny', label: 'New York' },
+  { value: 'sf', label: 'San Francisco' },
+]
+
+function CityPicker() {
+  const [value, setValue] = useState<City | null>(null)
+  return (
+    <Select<City>
+      options={cities}
+      value={value}
+      onChange={(next) => setValue(next as City | null)}
+    />
+  )
+}
+```
+
+`SelectProps<Option>` is generic — pass your own option shape and `getOptionValue`/`getOptionLabel`/`onChange` stay typed to it.
 
 ## Accessibility
 

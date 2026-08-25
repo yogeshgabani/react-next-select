@@ -75,9 +75,22 @@ const THEME_PRESETS = [
 
 const VERSION_HISTORY = [
   {
+    version: '0.4.0',
+    date: 'Aug 2026',
+    latest: true,
+    title: 'TypeScript types & npm discoverability',
+    tags: ['feature'],
+    items: [
+      'Ships hand-written type definitions (`dist/index.d.ts`) — `Select<Option>` is now generic, with typed `SelectProps`, `SelectOption`, `SelectComponents`, and `SelectStyles`. No `@types/react-next-select` needed.',
+      'Wired `types` and `exports["."].types` in `package.json` so editors resolve types automatically.',
+      'Added `repository`, `homepage`, and `bugs` fields to `package.json` for npm quality/discoverability scoring.',
+      'Expanded npm keywords (`react-component`, `custom-select`, `select-dropdown`, `typescript`, etc.) for better search ranking.',
+      'New `npm run typecheck` script, run automatically before publish.',
+    ],
+  },
+  {
     version: '0.3.1',
     date: 'Jun 2026',
-    latest: true,
     title: 'Demo-parity default styles',
     tags: ['feature', 'fix'],
     items: [
@@ -934,6 +947,198 @@ function Tag({ children, color = '#a78bfa' }) {
   )
 }
 
+function SiteStats() {
+  const [stats, setStats] = useState(null)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/hits')
+      .then((res) => {
+        if (!res.ok) throw new Error('bad response')
+        return res.json()
+      })
+      .then((data) => {
+        if (!cancelled) setStats(data)
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const formattedDate = stats?.lastUpdated
+    ? new Date(stats.lastUpdated).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    })
+    : '—'
+
+  const items = [
+    {
+      key: 'updated',
+      label: 'Last Updated',
+      value: formattedDate,
+      color: '#38bdf8',
+      icon: (
+        <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <rect x="3" y="4" width="14" height="13" rx="2" />
+          <path d="M3 8h14M7 2v4M13 2v4" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      key: 'hits',
+      label: 'Total Hits',
+      value: stats ? stats.hits.toLocaleString() : failed ? '—' : '···',
+      color: '#a78bfa',
+      icon: (
+        <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M1 10s3-6 9-6 9 6 9 6-3 6-9 6-9-6-9-6Z" />
+          <circle cx="10" cy="10" r="2.5" />
+        </svg>
+      ),
+    },
+    {
+      key: 'visitors',
+      label: 'Total Visitors',
+      value: stats ? stats.visitors.toLocaleString() : failed ? '—' : '···',
+      color: '#ec4899',
+      live: true,
+      icon: (
+        <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <circle cx="7" cy="7" r="3" />
+          <path d="M1 17c0-3 3-5 6-5s6 2 6 5" strokeLinecap="round" />
+          <path d="M13 8a2.5 2.5 0 1 0 0-5" strokeLinecap="round" />
+          <path d="M14 12.5c2 .4 3.5 2 3.5 4.5" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+  ]
+
+  return (
+    <section className="fade-up">
+      <div
+        style={{
+          height: 1,
+          margin: '0 0 24px',
+          background:
+            'linear-gradient(90deg, transparent, rgb(var(--border-rgb) / 0.20), transparent)',
+        }}
+      />
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
+          gap: 16,
+        }}
+      >
+        {items.map((it) => (
+          <div
+            key={it.key}
+            style={{
+              position: 'relative',
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              padding: '18px 20px',
+              background: 'rgb(var(--surface-rgb) / 0.04)',
+              border: '1px solid rgb(var(--border-rgb) / 0.08)',
+              borderRadius: 16,
+              backdropFilter: 'blur(10px)',
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 2,
+                background: `linear-gradient(90deg, transparent, ${it.color}, transparent)`,
+              }}
+            />
+            <div
+              style={{
+                flexShrink: 0,
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: `${it.color}22`,
+                color: it.color,
+                border: `1px solid ${it.color}40`,
+              }}
+            >
+              {it.icon}
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: 0.5,
+                  textTransform: 'uppercase',
+                  color: 'var(--text-soft)',
+                  marginBottom: 4,
+                }}
+              >
+                {it.label}
+                {it.live && stats?.live && (
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '1px 7px',
+                      borderRadius: 999,
+                      fontSize: 9.5,
+                      fontWeight: 700,
+                      color: '#fca5a5',
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      border: '1px solid rgba(239, 68, 68, 0.4)',
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: '50%',
+                        background: '#ef4444',
+                        animation: 'rns-live-pulse 1.6s ease-in-out infinite',
+                      }}
+                    />
+                    LIVE
+                  </span>
+                )}
+              </div>
+              <div
+                style={{
+                  fontSize: 20,
+                  fontWeight: 800,
+                  color: 'var(--text-primary)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {it.value}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function DemoCard({ tags, title, description, children, code }) {
   const [copied, setCopied] = useState(false)
   const copyCode = () => {
@@ -1295,7 +1500,7 @@ export default function Page() {
         {/* Hero */}
         <section className="fade-up" style={{ textAlign: 'center', marginBottom: 80 }}>
           <div style={{ display: 'inline-flex', marginBottom: 20 }}>
-            <Tag color="#a78bfa">V0.3.1 · Now Available</Tag>
+            <Tag color="#a78bfa">V0.4.0 · Now Available</Tag>
           </div>
           <h1
             style={{
@@ -1431,6 +1636,8 @@ export default function Page() {
             })}
           </div>
         </section>
+
+
 
         {/* Features Grid */}
         <section
@@ -2273,6 +2480,9 @@ export default function Page() {
             </div>
           </div>
         </footer>
+
+        {/* Live site stats — hits/visitors tracked via Netlify Blobs */}
+        <SiteStats />
       </main>
 
       {/* Scroll-to-top button */}
