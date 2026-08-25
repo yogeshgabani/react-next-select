@@ -947,23 +947,50 @@ function Tag({ children, color = '#a78bfa' }) {
   )
 }
 
+// Free, no-signup hit counter — https://jasoncameron.dev/abacus
+// GET /hit/:namespace/:key increments and returns { value }; GET /get/... just reads it.
+// Namespace is scoped to this site to avoid clashing with anyone else using Abacus.
+const ABACUS_BASE = 'https://abacus.jasoncameron.dev'
+const ABACUS_NAMESPACE = 'react-next-select.netlify.app'
+const VISITOR_FLAG_KEY = 'rns_visited'
+
 function SiteStats() {
   const [stats, setStats] = useState(null)
   const [failed, setFailed] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    fetch('/api/hits')
-      .then((res) => {
-        if (!res.ok) throw new Error('bad response')
-        return res.json()
-      })
-      .then((data) => {
-        if (!cancelled) setStats(data)
-      })
-      .catch(() => {
+
+    async function loadStats() {
+      try {
+        const hitRes = await fetch(`${ABACUS_BASE}/hit/${ABACUS_NAMESPACE}/hits`)
+        if (!hitRes.ok) throw new Error('hits request failed')
+        const { value: hits } = await hitRes.json()
+
+        // Only count a given browser once towards "visitors" — gate the
+        // increment behind a localStorage flag instead of hitting every load.
+        const alreadyVisited = localStorage.getItem(VISITOR_FLAG_KEY) === '1'
+        let visitorRes = await fetch(
+          `${ABACUS_BASE}/${alreadyVisited ? 'get' : 'hit'}/${ABACUS_NAMESPACE}/visitors`,
+        )
+        if (!visitorRes.ok && alreadyVisited) {
+          // Flag exists but the counter itself doesn't (e.g. reset upstream) — create it.
+          visitorRes = await fetch(`${ABACUS_BASE}/hit/${ABACUS_NAMESPACE}/visitors`)
+        }
+        if (!visitorRes.ok) throw new Error('visitors request failed')
+        const { value: visitors } = await visitorRes.json()
+
+        if (!alreadyVisited) localStorage.setItem(VISITOR_FLAG_KEY, '1')
+
+        if (!cancelled) {
+          setStats({ hits, visitors, lastUpdated: new Date().toISOString() })
+        }
+      } catch {
         if (!cancelled) setFailed(true)
-      })
+      }
+    }
+
+    loadStats()
     return () => {
       cancelled = true
     }
@@ -1093,7 +1120,7 @@ function SiteStats() {
                 }}
               >
                 {it.label}
-                {it.live && stats?.live && (
+                {it.live && stats && !failed && (
                   <span
                     style={{
                       display: 'inline-flex',
@@ -2481,7 +2508,7 @@ export default function Page() {
           </div>
         </footer>
 
-        {/* Live site stats — hits/visitors tracked via Netlify Blobs */}
+        {/* Live site stats — hits/visitors tracked via the free Abacus counter API */}
         <SiteStats />
       </main>
 
