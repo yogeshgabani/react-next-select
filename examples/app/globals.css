@@ -147,158 +147,33 @@ pre {
 }
 
 /* ============================================================ */
-/* react-next-select — theme-aware overrides                    */
+/* react-next-select — themed through its CSS variables only,   */
+/* so per-Select props (color, variant, size, ...) still apply. */
 /* ============================================================ */
 
-.rns__wrapper {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 14px;
+:root {
+  --rns-bg: var(--input-bg);
+  --rns-menu-bg: var(--menu-bg);
+  --rns-text: var(--text-primary);
+  --rns-muted: var(--text-muted);
+  --rns-placeholder: var(--text-soft);
+  --rns-disabled-bg: rgb(var(--surface-rgb) / 0.04);
+  --rns-control-min-height: 48px;
+  --rns-radius: 12px;
+  --rns-menu-max-height: 280px;
 }
 
 .rns__control {
-  min-height: 48px !important;
-  border: 1px solid rgb(var(--rns-accent) / 0.35) !important;
-  border-radius: 12px !important;
-  background: var(--input-bg) !important;
   backdrop-filter: blur(8px);
-  color: var(--text-primary);
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.3s;
-}
-
-.rns__control:hover {
-  border-color: rgb(var(--rns-accent) / 0.55) !important;
-}
-
-.rns__control:focus-within {
-  border-color: rgb(var(--rns-accent)) !important;
-  box-shadow: 0 0 0 3px rgb(var(--rns-accent) / 0.22) !important;
-}
-
-.rns__single-value {
-  color: var(--text-primary) !important;
-}
-
-.rns__input {
-  color: var(--text-primary) !important;
-}
-
-.rns__input::placeholder {
-  color: var(--text-soft) !important;
-}
-
-.rns__value-container > div:not([class]) {
-  color: var(--text-soft) !important;
-}
-
-.rns__multi-value {
-  background: rgb(var(--rns-accent) / 0.25) !important;
-  border: 1px solid rgb(var(--rns-accent) / 0.35);
-  border-radius: 6px !important;
-  transition: background 0.3s, border-color 0.3s;
-}
-
-.rns__multi-value__label {
-  color: var(--text-primary) !important;
-  font-weight: 500;
-}
-
-.rns__multi-value__remove {
-  color: var(--text-primary) !important;
-  border-left: 1px solid rgb(var(--rns-accent) / 0.35) !important;
-}
-
-.rns__multi-value__remove:hover {
-  background: rgba(236, 72, 153, 0.4) !important;
-  color: #fff !important;
-}
-
-.rns__indicator {
-  color: var(--text-muted) !important;
-}
-
-.rns__indicator:hover {
-  color: var(--text-primary) !important;
 }
 
 .rns__menu-inner {
-  background: var(--menu-bg) !important;
-  border: 1px solid rgb(var(--rns-accent) / 0.35) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25) !important;
   backdrop-filter: blur(12px);
-  max-height: 280px !important;
-}
-
-.rns__menu-list {
-  max-height: 240px !important;
-  padding: 6px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
 }
 
 .rns__menu-search-wrap {
-  background: var(--menu-search-bg) !important;
-  border-bottom: 1px solid rgb(var(--rns-accent) / 0.25) !important;
-  padding: 10px !important;
-}
-
-.rns__menu-search-input-wrap {
-  background: var(--input-bg) !important;
-  border: 1px solid rgb(var(--rns-accent) / 0.35) !important;
-  border-radius: 8px !important;
-}
-
-.rns__menu-search-input-wrap:focus-within {
-  border-color: rgb(var(--rns-accent)) !important;
-  box-shadow: 0 0 0 2px rgb(var(--rns-accent) / 0.25) !important;
-}
-
-.rns__menu-search-input {
-  color: var(--text-primary) !important;
-  background: transparent !important;
-}
-
-.rns__menu-search-input::placeholder {
-  color: var(--text-soft) !important;
-}
-
-.rns__menu-search-icon {
-  color: rgb(var(--rns-accent)) !important;
-}
-
-.rns__menu-search-clear {
-  color: rgb(var(--rns-accent)) !important;
-}
-
-.rns__option {
-  color: var(--text-secondary) !important;
-  padding: 10px 12px !important;
-  border-radius: 6px;
-  margin-bottom: 2px;
-  transition: background 0.15s, color 0.15s;
-}
-
-.rns__option:hover {
-  background: rgb(var(--rns-accent) / 0.18) !important;
-  color: var(--text-primary) !important;
-}
-
-.rns__option[aria-selected='true'] {
-  background: rgb(var(--rns-accent) / 0.4) !important;
-  color: var(--text-primary) !important;
-  font-weight: 600;
-}
-
-.rns__no-options,
-.rns__loading-message {
-  color: var(--text-muted) !important;
-  text-align: center;
-  padding: 16px !important;
-}
-
-.rns__wrapper.rns--is-disabled .rns__control {
-  background: rgb(var(--surface-rgb) / 0.04) !important;
-  border-color: rgb(var(--border-rgb) / 0.15) !important;
-  cursor: not-allowed;
-  opacity: 0.6;
+  background: var(--menu-search-bg);
 }
 
 /* Demo cards create their own stacking context (backdrop-filter), so an

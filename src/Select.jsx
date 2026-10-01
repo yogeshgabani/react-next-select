@@ -2,15 +2,57 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react'
+import { createPortal } from 'react-dom'
 import { SelectContext } from './SelectContext.jsx'
 import { defaultComponents } from './defaultComponents.jsx'
-import { filterOptions as applyFilter } from './utils/filterOptions.js'
+import {
+  filterOptions as applyFilter,
+  flattenOptions,
+} from './utils/filterOptions.js'
 import { mergeStyles } from './utils/mergeStyles.js'
+import { getThemeVars } from './utils/theme.js'
+import { highlightText } from './utils/highlight.js'
 import './styles/default.css'
+
+// useLayoutEffect warns during SSR; it only matters once we're in the browser.
+const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect
+
+const defaultIsOptionDisabled = (o) => !!o?.isDisabled
+const defaultFormatCreateLabel = (input) => `Create "${input}"`
+const defaultGetNewOptionData = (input) => ({ value: input, label: input })
+const defaultSelectAllLabel = ({ allSelected }) =>
+  allSelected ? 'Clear all' : 'Select all'
+
+// Theme tokens copied onto a portaled menu, which no longer sits inside the
+// wrapper and so can't inherit them.
+const PORTAL_VARS = [
+  '--rns-accent',
+  '--rns-bg',
+  '--rns-menu-bg',
+  '--rns-text',
+  '--rns-muted',
+  '--rns-placeholder',
+  '--rns-option-hover',
+  '--rns-option-selected',
+  '--rns-option-padding',
+  '--rns-radius',
+  '--rns-font-size',
+  '--rns-menu-max-height',
+]
+
+/** Index of the first enabled option walking from `from` by `step`, or -1. */
+function findEnabledIndex(options, from, step, isOptionDisabled) {
+  for (let i = from; i >= 0 && i < options.length; i += step) {
+    if (!isOptionDisabled(options[i])) return i
+  }
+  return -1
+}
 
 function shallowEqualOptions(a, b, getOptionValue) {
   if (a === b) return true
@@ -67,7 +109,7 @@ export function Select(props) {
     onMenuClose,
     menuIsOpen: menuIsOpenProp,
     closeMenuOnSelect,
-    blurInputOnSelect = true,
+    blurInputOnSelect,
     menuPlacement = 'bottom',
     id,
     'aria-label': ariaLabel,
@@ -75,10 +117,40 @@ export function Select(props) {
     name,
     tabIndex = 0,
     formatOptionLabel,
+    isOptionDisabled = defaultIsOptionDisabled,
+    isInvalid = false,
+    showCheckmark = false,
+    variant = 'outline',
+    size = 'md',
+    color,
+    bgColor,
+    borderColor,
+    focusColor,
+    textColor,
+    placeholderColor,
+    menuBgColor,
+    optionHoverColor,
+    optionSelectedColor,
+    chipColor,
+    radius,
+    isCreatable = false,
+    onCreateOption,
+    formatCreateLabel = defaultFormatCreateLabel,
+    isValidNewOption,
+    getNewOptionData = defaultGetNewOptionData,
+    showSelectAll = false,
+    selectAllLabel = defaultSelectAllLabel,
+    maxSelected,
+    highlightMatch = false,
+    menuPortalTarget,
+    debounceMs = 0,
   } = props
 
   const resolvedCloseMenuOnSelect =
     closeMenuOnSelect !== undefined ? closeMenuOnSelect : !isMulti
+  // Multi-select keeps focus after a pick so the keyboard keeps working.
+  const resolvedBlurInputOnSelect =
+    blurInputOnSelect !== undefined ? blurInputOnSelect : !isMulti
 
   const autoId = useId()
   const baseId = id ?? `rns-${autoId.replace(/:/g, '')}`
@@ -103,7 +175,10 @@ export function Select(props) {
   const [asyncOptions, setAsyncOptions] = useState([])
   const [asyncLoading, setAsyncLoading] = useState(false)
   const [menuSearchFocused, setMenuSearchFocused] = useState(false)
+  const [autoPlacement, setAutoPlacement] = useState('bottom')
+  const [portalStyle, setPortalStyle] = useState(null)
 
+  const wrapperRef = useRef(null)
   const controlRef = useRef(null)
   const inputRef = useRef(null)
   const menuRef = useRef(null)
@@ -123,12 +198,89 @@ export function Select(props) {
     return applyFilter(optionsProp, inputValue, filterOption, getOptionLabel)
   }, [isAsync, optionsProp, inputValue, filterOption, getOptionLabel])
 
-  const displayOptions = isAsync ? asyncOptions : syncFilteredOptions
+  const visibleOptions = isAsync ? asyncOptions : syncFilteredOptions
+  // `displayOptions` is the flat, keyboard-navigable list; `menuTree` keeps groups.
+  const { flat: displayOptions, tree: menuTree } = useMemo(
+    () => flattenOptions(visibleOptions),
+    [visibleOptions],
+  )
 
   const selectedValues = useMemo(() => {
     if (isMulti) return Array.isArray(value) ? value : []
     return value ? [value] : []
   }, [isMulti, value])
+
+  const atMax =
+    isMulti && maxSelected != null && selectedValues.length >= maxSelected
+
+  // Options that "Select all" acts on: visible, and not disabled by the user.
+  const selectableVisible = useMemo(
+    () => displayOptions.filter((o) => !isOptionDisabled(o)),
+    [displayOptions, isOptionDisabled],
+  )
+  const allVisibleSelected =
+    isMulti &&
+    selectableVisible.length > 0 &&
+    selectableVisible.every((o) => isOptionSelected(o, value, true, getOptionValue))
+
+  const selectAllItem =
+    isMulti && showSelectAll && selectableVisible.length > 0
+      ? {
+          __rnsSelectAll: true,
+          value: '__rns_select_all__',
+          label:
+            typeof selectAllLabel === 'function'
+              ? selectAllLabel({ allSelected: allVisibleSelected })
+              : selectAllLabel,
+        }
+      : null
+
+  const allKnownOptions = useMemo(
+    () => (isAsync ? displayOptions : flattenOptions(optionsProp).flat),
+    [isAsync, displayOptions, optionsProp],
+  )
+
+  const createItem = useMemo(() => {
+    if (!isCreatable) return null
+    const query = inputValue.trim().toLowerCase()
+    if (!query) return null
+    const valid = isValidNewOption
+      ? isValidNewOption(inputValue, selectedValues, allKnownOptions)
+      : ![...allKnownOptions, ...selectedValues].some(
+          (o) => String(getOptionLabel(o) ?? '').trim().toLowerCase() === query,
+        )
+    return valid
+      ? { ...getNewOptionData(inputValue.trim()), __rnsCreate: true }
+      : null
+  }, [
+    isCreatable,
+    inputValue,
+    isValidNewOption,
+    selectedValues,
+    allKnownOptions,
+    getOptionLabel,
+    getNewOptionData,
+  ])
+
+  // Everything the keyboard moves through: [select all] + options + [create].
+  const navOffset = selectAllItem ? 1 : 0
+  const navOptions = useMemo(() => {
+    const list = selectAllItem ? [selectAllItem, ...displayOptions] : [...displayOptions]
+    if (createItem) list.push(createItem)
+    return list
+  }, [selectAllItem, displayOptions, createItem])
+
+  // The option's own disabled flag, plus "limit reached" for anything that
+  // isn't already selected.
+  const isOptionUnavailable = useCallback(
+    (o) => {
+      if (o?.__rnsSelectAll) return atMax && !allVisibleSelected
+      if (o?.__rnsCreate) return atMax
+      if (isOptionDisabled(o)) return true
+      return atMax && !isOptionSelected(o, value, isMulti, getOptionValue)
+    },
+    [atMax, allVisibleSelected, isOptionDisabled, value, isMulti, getOptionValue],
+  )
 
   const setValue = useCallback(
     (next, meta) => {
@@ -207,8 +359,17 @@ export function Select(props) {
 
   useEffect(() => {
     if (!isAsync || !isOpen) return
-    runLoadOptions(inputValue)
-  }, [isAsync, isOpen, inputValue, runLoadOptions])
+    // Opening the menu or clearing the search loads right away; typing waits
+    // for a pause of `debounceMs`.
+    if (!(debounceMs > 0) || !inputValue) {
+      runLoadOptions(inputValue)
+      return
+    }
+    loadRequestRef.current++ // ignore responses for older input while we wait
+    setAsyncLoading(true)
+    const timer = setTimeout(() => runLoadOptions(inputValue), debounceMs)
+    return () => clearTimeout(timer)
+  }, [isAsync, isOpen, inputValue, runLoadOptions, debounceMs])
 
   useEffect(() => {
     if (typeof document === 'undefined') return
@@ -224,8 +385,99 @@ export function Select(props) {
   }, [isOpen, closeMenu])
 
   useEffect(() => {
-    setHighlightedIndex(0)
-  }, [inputValue, displayOptions.length, isOpen])
+    // Land on the first enabled real option ("Select all" is reachable with
+    // ArrowUp but shouldn't steal Enter). Keyed on length, not identity, so an
+    // inline `options` array doesn't reset the highlight on every parent render.
+    const first = findEnabledIndex(navOptions, navOffset, 1, isOptionUnavailable)
+    setHighlightedIndex(
+      first !== -1
+        ? first
+        : Math.max(0, findEnabledIndex(navOptions, 0, 1, isOptionUnavailable)),
+    )
+  }, [inputValue, navOptions.length, isOpen])
+
+  const themeVars = useMemo(
+    () =>
+      getThemeVars({
+        color,
+        bgColor,
+        borderColor,
+        focusColor,
+        textColor,
+        placeholderColor,
+        menuBgColor,
+        optionHoverColor,
+        optionSelectedColor,
+        chipColor,
+        radius,
+      }),
+    [
+      color,
+      bgColor,
+      borderColor,
+      focusColor,
+      textColor,
+      placeholderColor,
+      menuBgColor,
+      optionHoverColor,
+      optionSelectedColor,
+      chipColor,
+      radius,
+    ],
+  )
+
+  // Portaled menu: track the control's position and carry the theme tokens
+  // across (the portal sits outside the wrapper, so nothing is inherited).
+  useIsomorphicLayoutEffect(() => {
+    if (!isOpen || !menuPortalTarget || !controlRef.current) {
+      setPortalStyle(null)
+      return
+    }
+    const tokens = {}
+    if (wrapperRef.current) {
+      const cs = getComputedStyle(wrapperRef.current)
+      for (const name of PORTAL_VARS) {
+        const v = cs.getPropertyValue(name).trim()
+        if (v) tokens[name] = v
+      }
+      tokens.fontFamily = cs.fontFamily
+    }
+    let last = ''
+    const update = () => {
+      const r = controlRef.current?.getBoundingClientRect()
+      if (!r) return
+      const key = `${r.top}|${r.left}|${r.width}|${r.height}`
+      if (key === last) return
+      last = key
+      setPortalStyle({ tokens, top: r.top, bottom: r.bottom, left: r.left, width: r.width })
+    }
+    update()
+    window.addEventListener('scroll', update, true)
+    window.addEventListener('resize', update)
+    const ro =
+      typeof ResizeObserver !== 'undefined' ? new ResizeObserver(update) : null
+    ro?.observe(controlRef.current)
+    return () => {
+      window.removeEventListener('scroll', update, true)
+      window.removeEventListener('resize', update)
+      ro?.disconnect()
+    }
+  }, [isOpen, menuPortalTarget, themeVars, size])
+
+  const portalReady = !!portalStyle
+
+  useIsomorphicLayoutEffect(() => {
+    if (!isOpen || menuPlacement !== 'auto' || !controlRef.current) return
+    const rect = controlRef.current.getBoundingClientRect()
+    const menuHeight = menuRef.current?.offsetHeight || 320
+    const spaceBelow = window.innerHeight - rect.bottom
+    const spaceAbove = rect.top
+    setAutoPlacement(
+      spaceBelow < menuHeight && spaceAbove > spaceBelow ? 'top' : 'bottom',
+    )
+  }, [isOpen, menuPlacement, portalReady])
+
+  const placement = menuPlacement === 'auto' ? autoPlacement : menuPlacement
 
   useEffect(() => {
     if (!isOpen || !isSearchable || typeof document === 'undefined') return
@@ -240,38 +492,79 @@ export function Select(props) {
 
   const selectOption = useCallback(
     (option) => {
-      if (!option || isDisabled) return
-      if (isMulti) {
-        const current = Array.isArray(value) ? value : []
-        const exists = current.some(
-          (v) => getOptionValue(v) === getOptionValue(option),
-        )
+      if (!option || isDisabled || isOptionUnavailable(option)) return
+      const same = (a, b) => getOptionValue(a) === getOptionValue(b)
+
+      // "Select all" toggles the visible options and leaves the search alone.
+      if (option.__rnsSelectAll) {
+        if (allVisibleSelected) {
+          const removed = selectedValues.filter((v) =>
+            selectableVisible.some((o) => same(o, v)),
+          )
+          setValue(
+            selectedValues.filter((v) => !removed.includes(v)),
+            { action: 'deselect-all', removedValues: removed },
+          )
+        } else {
+          let added = selectableVisible.filter(
+            (o) => !selectedValues.some((v) => same(o, v)),
+          )
+          if (maxSelected != null) {
+            added = added.slice(0, Math.max(0, maxSelected - selectedValues.length))
+          }
+          if (added.length) {
+            setValue([...selectedValues, ...added], { action: 'select-all', options: added })
+          }
+        }
+        return
+      }
+
+      if (option.__rnsCreate) {
+        const { __rnsCreate, ...data } = option
+        const created = { ...data, __isNew__: true }
+        if (onCreateOption) {
+          onCreateOption(inputValue.trim())
+        } else {
+          setValue(isMulti ? [...selectedValues, created] : created, {
+            action: 'create-option',
+            option: created,
+          })
+        }
+      } else if (isMulti) {
+        const exists = selectedValues.some((v) => same(v, option))
         const next = exists
-          ? current.filter((v) => getOptionValue(v) !== getOptionValue(option))
-          : [...current, option]
+          ? selectedValues.filter((v) => !same(v, option))
+          : [...selectedValues, option]
         setValue(next, { action: exists ? 'remove-value' : 'select-option', option })
       } else {
         setValue(option, { action: 'select-option', option })
       }
+
       if (resolvedCloseMenuOnSelect) {
         closeMenu()
       } else {
         commitInput('', 'input-change')
       }
-      if (blurInputOnSelect && inputRef.current && typeof document !== 'undefined') {
+      if (resolvedBlurInputOnSelect && inputRef.current && typeof document !== 'undefined') {
         inputRef.current.blur()
       }
     },
     [
       isDisabled,
+      isOptionUnavailable,
+      allVisibleSelected,
+      selectableVisible,
+      selectedValues,
+      maxSelected,
+      onCreateOption,
+      inputValue,
       isMulti,
-      value,
       getOptionValue,
       setValue,
       resolvedCloseMenuOnSelect,
       closeMenu,
       commitInput,
-      blurInputOnSelect,
+      resolvedBlurInputOnSelect,
     ],
   )
 
@@ -291,33 +584,38 @@ export function Select(props) {
     (e) => {
       if (isDisabled) return
       const { key } = e
-      const max = displayOptions.length - 1
+      const max = navOptions.length - 1
+      // Disabled options are skipped; stay put when there's nothing further.
+      const step = (from, dir, fallback) => {
+        const next = findEnabledIndex(navOptions, from, dir, isOptionUnavailable)
+        return next === -1 ? fallback : next
+      }
 
       if (key === 'ArrowDown') {
         e.preventDefault()
         if (!isOpen) openMenu()
-        else setHighlightedIndex((i) => (max < 0 ? 0 : Math.min(i + 1, max)))
+        else setHighlightedIndex((i) => step(i + 1, 1, i))
         return
       }
       if (key === 'ArrowUp') {
         e.preventDefault()
         if (!isOpen) openMenu()
-        else setHighlightedIndex((i) => (max < 0 ? 0 : Math.max(i - 1, 0)))
+        else setHighlightedIndex((i) => step(i - 1, -1, i))
         return
       }
       if (key === 'Home' && isOpen) {
         e.preventDefault()
-        setHighlightedIndex(0)
+        setHighlightedIndex(step(0, 1, 0))
         return
       }
       if (key === 'End' && isOpen) {
         e.preventDefault()
-        setHighlightedIndex(max < 0 ? 0 : max)
+        setHighlightedIndex(step(max, -1, Math.max(max, 0)))
         return
       }
       if (key === 'Enter' && isOpen) {
         e.preventDefault()
-        const opt = displayOptions[highlightedIndex]
+        const opt = navOptions[highlightedIndex]
         if (opt) selectOption(opt)
         return
       }
@@ -332,7 +630,8 @@ export function Select(props) {
     },
     [
       isDisabled,
-      displayOptions,
+      isOptionUnavailable,
+      navOptions,
       highlightedIndex,
       isOpen,
       openMenu,
@@ -343,12 +642,7 @@ export function Select(props) {
 
   const containerStyle = mergeStyles(stylesProp, 'container', {}, { isDisabled })
   const controlStyle = mergeStyles(stylesProp, 'control', {}, { isDisabled, isFocused: isOpen })
-  const menuStyle = mergeStyles(
-    stylesProp,
-    'menu',
-    {},
-    { placement: menuPlacement },
-  )
+  const menuStyle = mergeStyles(stylesProp, 'menu', {}, { placement })
   const menuSearchWrapStyle = mergeStyles(
     stylesProp,
     'menuSearchWrap',
@@ -418,6 +712,7 @@ export function Select(props) {
   const Menu = components.Menu
   const MenuList = components.MenuList
   const Option = components.Option
+  const GroupHeading = components.GroupHeading
   const LoadingMessage = components.LoadingMessage
   const NoOptionsMessage = components.NoOptionsMessage
   const SingleValue = components.SingleValue
@@ -442,6 +737,7 @@ export function Select(props) {
     'aria-haspopup': 'listbox',
     'aria-label': ariaLabel,
     'aria-labelledby': ariaLabelledBy,
+    'aria-invalid': isInvalid || undefined,
     tabIndex: isSearchable && !showMenuSearchInput ? -1 : tabIndex,
   }
 
@@ -476,6 +772,7 @@ export function Select(props) {
     spellCheck: false,
     'aria-autocomplete': 'list',
     'aria-controls': listboxId,
+    'aria-invalid': isInvalid || undefined,
     'aria-activedescendant': isOpen
       ? `${baseId}-opt-${highlightedIndex}`
       : undefined,
@@ -484,15 +781,103 @@ export function Select(props) {
   const rootClass = [
     'rns__wrapper',
     classNamePrefix && `${classNamePrefix}__wrapper`,
+    variant && variant !== 'outline' && `rns--${variant}`,
+    size && size !== 'md' && `rns--size-${size}`,
+    isMulti && 'rns--is-multi',
     isDisabled && 'rns--is-disabled',
+    isInvalid && 'rns--is-invalid',
     className,
   ]
     .filter(Boolean)
     .join(' ')
 
+  const renderOption = (opt, index) => {
+    const selected = opt.__rnsSelectAll
+      ? allVisibleSelected
+      : !opt.__rnsCreate && isOptionSelected(opt, value, isMulti, getOptionValue)
+    const focused = index === highlightedIndex
+    const disabled = isOptionUnavailable(opt)
+    const optStyle = mergeStyles(
+      stylesProp,
+      'option',
+      {},
+      { isSelected: selected, isFocused: focused, isDisabled: disabled },
+    )
+    let label
+    let key
+    if (opt.__rnsSelectAll) {
+      label = opt.label
+      key = '__rns_select_all__'
+    } else if (opt.__rnsCreate) {
+      label = formatCreateLabel(inputValue.trim())
+      key = '__rns_create__'
+    } else {
+      label = formatOptionLabel
+        ? formatOptionLabel(opt, { context: 'menu' })
+        : getOptionLabel(opt)
+      if (highlightMatch && !formatOptionLabel) label = highlightText(label, inputValue)
+      key = String(getOptionValue(opt))
+    }
+    return (
+      <div key={key} style={optStyle} role="presentation">
+        <Option
+          data={opt}
+          isSelected={selected}
+          isFocused={focused}
+          isDisabled={disabled}
+          innerProps={{
+            id: `${baseId}-opt-${index}`,
+            role: 'option',
+            'aria-selected': selected,
+            'aria-disabled': disabled || undefined,
+            onMouseMove: disabled ? undefined : () => setHighlightedIndex(index),
+            onMouseDown: (e) => e.preventDefault(),
+            onClick: () => selectOption(opt),
+          }}
+          selectProps={props}
+        >
+          {label}
+        </Option>
+      </div>
+    )
+  }
+
+  const wrapMenu = (menu) => {
+    if (!menu || !menuPortalTarget) return menu
+    if (!portalStyle) return null // positioned in a layout effect, before paint
+    // A zero-height anchor on the control's bottom edge (top edge when the
+    // menu opens upward): the menu hangs off it exactly as it does inline,
+    // and the anchor itself never covers anything clickable.
+    const { tokens, top, bottom, left, width } = portalStyle
+    const portalBoxStyle = mergeStyles(
+      stylesProp,
+      'menuPortal',
+      {
+        ...tokens,
+        position: 'fixed',
+        top: placement === 'top' ? top : bottom,
+        left,
+        width,
+        height: 0,
+        zIndex: 1000,
+      },
+      { placement },
+    )
+    return createPortal(
+      <div className="rns__portal" style={portalBoxStyle}>
+        {menu}
+      </div>,
+      menuPortalTarget,
+    )
+  }
+
   return (
     <SelectContext.Provider value={ctx}>
-      <div className={rootClass} style={{ ...containerStyle, ...style }}>
+      <div
+        ref={wrapperRef}
+        className={rootClass}
+        style={{ ...themeVars, ...containerStyle, ...style }}
+      >
         <Control
           ref={controlRef}
           innerProps={controlInnerProps}
@@ -568,12 +953,12 @@ export function Select(props) {
             </IndicatorsContainer>
         </Control>
 
-        {isOpen && (
+        {wrapMenu(isOpen && (
           <Menu
             innerProps={{
               ref: menuRef,
               id: listboxId,
-              className: `rns__menu rns__menu--${menuPlacement}`,
+              className: `rns__menu rns__menu--${placement}`,
             }}
             selectProps={props}
           >
@@ -628,58 +1013,45 @@ export function Select(props) {
                   <LoadingMessage selectProps={props}>
                     {loadingMessage({ inputValue })}
                   </LoadingMessage>
-                ) : displayOptions.length === 0 ? (
+                ) : navOptions.length === 0 ? (
                   <NoOptionsMessage selectProps={props}>
                     {noOptionsMessage({ inputValue })}
                   </NoOptionsMessage>
                 ) : (
-                  displayOptions.map((opt, index) => {
-                    const selected = isOptionSelected(
-                      opt,
-                      value,
-                      isMulti,
-                      getOptionValue,
-                    )
-                    const focused = index === highlightedIndex
-                    const optStyle = mergeStyles(
-                      stylesProp,
-                      'option',
-                      {},
-                      { isSelected: selected, isFocused: focused },
-                    )
-                    const label = formatOptionLabel
-                      ? formatOptionLabel(opt, { context: 'menu' })
-                      : getOptionLabel(opt)
+                  <>
+                  {selectAllItem && renderOption(selectAllItem, 0)}
+                  {menuTree.map((node) => {
+                    if (node.type === 'option') {
+                      return renderOption(node.option, node.index + navOffset)
+                    }
+                    const headingId = `${baseId}-group-${node.key}`
                     return (
                       <div
-                        key={String(getOptionValue(opt))}
-                        style={optStyle}
-                        role="presentation"
+                        key={`group-${node.key}`}
+                        className="rns__group"
+                        role="group"
+                        aria-labelledby={headingId}
                       >
-                        <Option
-                          data={opt}
-                          isSelected={selected}
-                          isFocused={focused}
-                          innerProps={{
-                            id: `${baseId}-opt-${index}`,
-                            role: 'option',
-                            'aria-selected': selected,
-                            onMouseMove: () => setHighlightedIndex(index),
-                            onMouseDown: (e) => e.preventDefault(),
-                            onClick: () => selectOption(opt),
-                          }}
+                        <GroupHeading
+                          data={node.group}
+                          innerProps={{ id: headingId }}
                           selectProps={props}
                         >
-                          {label}
-                        </Option>
+                          {node.group.label}
+                        </GroupHeading>
+                        {node.children.map(({ option, index }) =>
+                          renderOption(option, index + navOffset),
+                        )}
                       </div>
                     )
-                  })
+                  })}
+                  {createItem && renderOption(createItem, navOptions.length - 1)}
+                  </>
                 )}
               </MenuList>
             </div>
           </Menu>
-        )}
+        ))}
 
         {name && (
           <input type="hidden" name={name} value={serializeForForm(value, isMulti, getOptionValue)} />

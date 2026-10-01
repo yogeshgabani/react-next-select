@@ -7,6 +7,7 @@
 
 Single · multi · async · searchable · themable via CSS variables · keyboard-navigable · zero runtime deps · ESM + CJS.
 
+[![CI](https://github.com/yogeshgabani/react-next-select/actions/workflows/ci.yml/badge.svg)](https://github.com/yogeshgabani/react-next-select/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/react-next-select.svg?color=4f46e5&style=flat-square)](https://www.npmjs.com/package/react-next-select)
 [![downloads](https://img.shields.io/npm/dm/react-next-select.svg?color=4f46e5&style=flat-square)](https://www.npmjs.com/package/react-next-select)
 [![types](https://img.shields.io/badge/types-included-3178c6?style=flat-square)](#typescript)
@@ -26,15 +27,35 @@ Built in JavaScript (ES6+) with no external runtime dependencies, ships ESM + CJ
 
 Try every prop interactively, switch between light/dark themes, and customize the accent color live — the demo includes a Theme Studio, a Props Playground, and copy-ready code snippets for every variant.
 
+## Why react-next-select?
+
+- **One prop themes it.** `<Select color="purple" />` retints the background, border, hover glow, focus ring, selected option and chips, each at a tuned opacity. 19 presets or any hex/rgb/hsl.
+- **Built for Next.js.** SSR-safe, works in the App Router and Pages Router, no hydration warnings.
+- **Batteries included.** Creatable options, select all, max limit, grouped options, icons + descriptions, match highlight, menu portal, async debounce — no plugins.
+- **Small and dependency-free.** About 10 kB gzipped JS + 3 kB CSS, ESM + CJS, types included.
+- **Accessible by default.** ARIA combobox/listbox, full keyboard support, disabled options skipped, `aria-invalid` on errors.
+- **Tested.** 70 tests (Vitest + Testing Library) run in CI on every push.
+
 ## Features
 
 - Single select and multi-select
+- **Color props** — `color` (19 presets or any color), `bgColor`, `borderColor`, `focusColor`, `textColor`, `menuBgColor`, `chipColor`, … ([details](#color-props))
+- **10 variants & 3 sizes** — `outline`, `filled`, `flushed`, `ghost`, `solid`, `elevated`, `glass`, `gradient`, `glow`, `pill`; `size="sm" | "md" | "lg"`, `radius`
+- **Grouped options** — `{ label, options: [...] }` with search and keyboard nav across groups
+- **Disabled options** — `option.isDisabled` or `isOptionDisabled`, skipped by the keyboard
+- **Error state** — `isInvalid` (danger border + ring, `aria-invalid`)
+- **Checkmarks** — `showCheckmark` for a ✓ on selected options
+- **Creatable** — `isCreatable` + `onCreateOption` for "Create …" ([details](#creatable-options))
+- **Select all & max limit** — `showSelectAll`, `maxSelected` ([details](#select-all--max-limit))
+- **Icons, descriptions & match highlight** — `option.icon`, `option.description`, `highlightMatch`
+- **Menu portal** — `menuPortalTarget` escapes modals and `overflow: hidden` ([details](#menu-portal))
 - Searchable dropdown (inline or a separate in-menu search input)
-- Async options loading with race-condition-safe requests
-- Custom option / control / menu / indicator rendering
+- Async options loading with race-condition-safe requests and `debounceMs`
+- Custom option / control / menu / indicator / group heading rendering
 - Full keyboard navigation (Arrow / Home / End / Enter / Esc / Tab)
 - Clearable input
 - Disabled and loading states
+- Menu placement `bottom`, `top`, or `auto` (flips up when there's no room below)
 - Controlled and uncontrolled support (`value`, `inputValue`, `menuIsOpen`)
 - Hidden `<input name>` for native form submission
 - SSR-safe behavior for Next.js (no `window`/`document` access on render)
@@ -62,8 +83,17 @@ Import the default stylesheet once in your app:
 import 'react-next-select/style.css'
 ```
 
-> 💡 **Want a custom accent color (purple, indigo, emerald, anything)?**
-> Just drop these 3 lines into your global CSS — the focus ring, selected option, hover, multi-value chips, scrollbar, and search icon all retint together. **No class overrides, no `!important`, nothing else to learn.**
+> 💡 **Want a custom color (purple, indigo, emerald, anything)?** Pass one prop:
+
+```jsx
+<Select options={options} color="purple" />            // a preset
+<Select options={options} color="#7c3aed" />           // or any hex / rgb() / hsl()
+<Select options={options} color="emerald" variant="filled" size="lg" />
+```
+
+See [Color props](#color-props) for all presets and per-part colors (`bgColor`, `borderColor`, …).
+
+Prefer to theme **every** Select at once from CSS? Drop these lines into your global CSS — the focus ring, selected option, hover, multi-value chips, scrollbar, and search icon all retint together. **No class overrides, no `!important`.**
 
 ```css
 /* 🎨 Paste in app/globals.css (Next.js) or index.css (CRA/Vite) */
@@ -180,9 +210,237 @@ export default function Home() {
     return res.json()
   }}
   defaultOptions
+  debounceMs={300}   // one request after typing pauses, not one per keystroke
   placeholder="Search users..."
 />
 ```
+
+Responses for older input are ignored, so results never arrive out of order.
+
+## Color props
+
+### `color` — one prop, every state
+
+```jsx
+<Select options={options} color="purple" />
+```
+
+From that one color, each part gets its own opacity, so it looks right on light and dark pages:
+
+| Part | Look |
+| --- | --- |
+| Control background | soft 5% tint |
+| Border | 35% → 60% on hover → 100% on focus |
+| Hover | extra tint layer + soft colored glow |
+| Focus | solid border + 3px ring at 22% |
+| Option hover / selected | 18% / 40% |
+| Multi-value chips | 25% fill, 35% border |
+| Scrollbar, search icon, indicator hover | accent |
+
+**19 presets:** `slate` `gray` `red` `orange` `amber` `yellow` `lime` `green` `emerald` `teal` `cyan` `sky` `blue` `indigo` `violet` `purple` `fuchsia` `pink` `rose`. The shades are picked so the focus border keeps at least 3:1 contrast on both white and dark (`#0f172a`) backgrounds.
+
+Any other color works too: `color="#7c3aed"`, `color="rgb(124 58 237)"`, `color="hsl(262 83% 58%)"`.
+
+### `variant`, `size`, `radius`
+
+10 variants. Every one follows `color` and has its own hover and focus state:
+
+| `variant` | Look | Good for |
+| --- | --- | --- |
+| `outline` *(default)* | border + soft tint | forms |
+| `filled` | tinted fill, border appears on focus | dense forms, settings |
+| `flushed` | bottom border only | minimal / inline forms |
+| `ghost` | no chrome until hover or focus | toolbars, table cells |
+| `solid` | the control **is** the color, white text | filters, call-to-action pickers |
+| `elevated` | no border, soft shadow that lifts on hover | cards, light pages |
+| `glass` | frosted, translucent, blurred backdrop | gradients, images, dark heroes |
+| `gradient` | two-color gradient border | landing pages, highlights |
+| `glow` | neon halo | dark UIs |
+| `pill` | fully rounded control and chips | search bars, tags |
+
+```jsx
+<Select options={options} color="purple" variant="solid" />
+<Select options={options} color="emerald" variant="gradient" />
+<Select options={options} color="sky" variant="glass" />
+
+<Select options={options} size="sm" />   {/* 34px */}
+<Select options={options} size="md" />   {/* 44px (default) */}
+<Select options={options} size="lg" />   {/* 52px */}
+
+<Select options={options} radius={999} /> {/* number = px, or any CSS length */}
+```
+
+For `solid`, the `color` prop darkens the fill just enough for white text to reach at least 4.5:1 contrast. For `gradient`, it picks the second color by turning the hue 40° (purple → pink, emerald → blue). Theming from CSS instead? Set `--rns-accent-solid` and `--rns-accent-2` yourself.
+
+### Per-part colors
+
+Set exactly the parts you want. All accept any CSS color; anything you leave out still comes from `color`.
+
+```jsx
+<Select
+  options={options}
+  color="orange"               // hover, focus fallback, scrollbar, icons
+  bgColor="#fff7ed"            // control + menu background (turns the tint off)
+  borderColor="#fdba74"        // control border at rest
+  focusColor="#ea580c"         // focus border + ring
+  textColor="#7c2d12"          // value, input and option text
+  placeholderColor="#c2410c"
+  menuBgColor="#fff7ed"        // menu only (defaults to bgColor)
+  optionHoverColor="#ffedd5"
+  optionSelectedColor="#fed7aa"
+  chipColor="#fed7aa"          // multi-value chips
+  radius={8}
+/>
+```
+
+### Theme a whole section — `getThemeVars()`
+
+The color props just set `--rns-*` CSS variables. `getThemeVars()` returns the same variables, so you can theme every Select inside a container:
+
+```jsx
+import { Select, getThemeVars } from 'react-next-select'
+
+<div style={getThemeVars({ color: 'emerald', radius: 12 })}>
+  <Select options={a} />
+  <Select options={b} isMulti />
+</div>
+```
+
+`colorPresets` (name → `"r g b"`) and `toRgbTriplet(color)` are exported too.
+
+## Grouped options
+
+Any item with an `options` array is a group. Search filters inside groups (empty groups disappear) and arrow keys move across group boundaries. Groups and plain options can be mixed.
+
+```jsx
+const options = [
+  { label: 'UI libraries', options: [
+    { value: 'react', label: 'React' },
+    { value: 'vue', label: 'Vue' },
+  ]},
+  { label: 'Bundlers', options: [
+    { value: 'vite', label: 'Vite' },
+    { value: 'webpack', label: 'Webpack' },
+  ]},
+]
+
+<Select options={options} isMulti showCheckmark />
+```
+
+Customize the heading with `components={{ GroupHeading }}`. It receives `data` (the group) and `innerProps` (spread them — they carry the `id` the group is labelled by).
+
+## Disabled options
+
+```jsx
+const plans = [
+  { value: 'free', label: 'Free' },
+  { value: 'team', label: 'Team — coming soon', isDisabled: true },
+]
+
+<Select options={plans} />
+
+// or decide with a function:
+<Select options={plans} isOptionDisabled={(o) => o.seats > available} />
+```
+
+Disabled options are greyed out, can't be clicked, get `aria-disabled="true"`, and are skipped by Arrow / Home / End.
+
+## Error state
+
+```jsx
+const [touched, setTouched] = useState(false)
+
+<Select
+  options={countries}
+  value={country}
+  onChange={setCountry}
+  onMenuClose={() => setTouched(true)}
+  isInvalid={touched && !country}
+/>
+```
+
+`isInvalid` gives a danger-colored border and focus ring (`--rns-danger`, default `239 68 68`) and sets `aria-invalid="true"`.
+
+## Creatable options
+
+When the typed text matches nothing, `isCreatable` adds a **Create "…"** option at the end of the menu (Enter picks it).
+
+```jsx
+// 1) Let the Select pick it — the value gets { value, label, __isNew__: true }
+<Select options={tags} isMulti isCreatable />
+
+// 2) Or handle it yourself (save to an API, add to your list, ...)
+const [tags, setTags] = useState(initialTags)
+const [value, setValue] = useState([])
+
+<Select
+  options={tags}
+  value={value}
+  onChange={setValue}
+  isMulti
+  isCreatable
+  onCreateOption={(text) => {
+    const tag = { value: text, label: text }
+    setTags((t) => [...t, tag])
+    setValue((v) => [...v, tag])
+  }}
+/>
+```
+
+| Prop | Default |
+| --- | --- |
+| `formatCreateLabel(text)` | `` `Create "${text}"` `` |
+| `isValidNewOption(text, selected, options)` | non-empty and no option/value has the same label (case-insensitive) |
+| `getNewOptionData(text)` | `{ value: text, label: text }` |
+
+The text is trimmed before it reaches `onCreateOption` / `getNewOptionData`. `onChange` reports `action: 'create-option'`.
+
+## Select all & max limit
+
+```jsx
+<Select options={options} isMulti showSelectAll />
+<Select options={options} isMulti maxSelected={3} />
+<Select options={options} isMulti showSelectAll maxSelected={5} showCheckmark />
+```
+
+- **`showSelectAll`** adds a *Select all / Clear all* row at the top of the menu. It acts on the **visible** options, so with a search typed it selects just the matches. Disabled options are skipped. Rename it with `selectAllLabel` (a node, or `({ allSelected }) => node`). `onChange` reports `action: 'select-all'` / `'deselect-all'`.
+- **`maxSelected`** disables the remaining options once the limit is reached; selected ones can still be removed. *Select all* stops at the limit.
+
+## Icons, descriptions & match highlight
+
+```jsx
+const methods = [
+  { value: 'card', label: 'Credit card', icon: '💳', description: 'Visa, Mastercard, Amex' },
+  { value: 'upi',  label: 'UPI',         icon: <UpiLogo />, description: 'Instant' },
+]
+
+<Select options={methods} highlightMatch />
+```
+
+- `icon` (any node — emoji, `<svg>`, `<img>`) shows before the label in the menu, the selected value and chips.
+- `description` shows as a muted second line in the menu.
+- `highlightMatch` bolds and underlines the typed text inside each label.
+
+These are skipped when you pass `formatOptionLabel` — then you're in charge of rendering.
+
+## Menu portal
+
+Inside a modal, a table cell or any `overflow: hidden` box, the menu gets clipped. Render it into `document.body` instead:
+
+```jsx
+<Select options={options} menuPortalTarget={document.body} />
+```
+
+In Next.js, `document` doesn't exist on the server, so pick the target after mount:
+
+```jsx
+const [portalTarget, setPortalTarget] = useState(null)
+useEffect(() => setPortalTarget(document.body), [])
+
+<Select options={options} menuPortalTarget={portalTarget} />
+```
+
+The menu stays attached while you scroll or resize, keeps its theme (color props and `--rns-*` variables are carried over), and works with `menuPlacement="auto"`. Change its stacking with `styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}`.
 
 ## Full Example — Every Prop, Annotated
 
@@ -203,7 +461,7 @@ const frameworks = [
   { value: 'remix',  label: 'Remix' },
   { value: 'vite',   label: 'Vite' },
   { value: 'astro',  label: 'Astro' },
-  { value: 'nuxt',   label: 'Nuxt',   disabled: true }, // your own field — Select doesn't read it
+  { value: 'nuxt',   label: 'Nuxt',   isDisabled: true }, // greyed out, skipped by the keyboard
 ]
 
 export default function FullExample() {
@@ -236,8 +494,20 @@ export default function FullExample() {
       isDisabled={false}                // greyed out, no interaction
       isLoading={false}                 // show loading message in menu (manual control)
       closeMenuOnSelect={undefined}     // default: true for single, false for multi
-      blurInputOnSelect={true}          // blur after picking — set false to keep typing
-      menuPlacement="bottom"            // 'bottom' | 'top'
+      blurInputOnSelect={undefined}     // default: true for single, false for multi
+      menuPlacement="bottom"            // 'bottom' | 'top' | 'auto'
+      isInvalid={false}                 // error border + ring, aria-invalid
+      showCheckmark={false}             // ✓ next to selected options
+      isOptionDisabled={(o) => !!o.isDisabled} // the default
+
+      /* ──────────────── Colors & look ──────────────── */
+      color="purple"                    // preset or any hex/rgb/hsl — tints every state
+      variant="outline"                 // outline | filled | flushed | ghost | solid
+                                        // elevated | glass | gradient | glow | pill
+      size="md"                         // 'sm' | 'md' | 'lg'
+      radius={10}                       // number = px
+      // bgColor, borderColor, focusColor, textColor, placeholderColor,
+      // menuBgColor, optionHoverColor, optionSelectedColor, chipColor
 
       /* ──────────────── Search input (inside menu) ──────────────── */
       // When true, the search box renders INSIDE the menu instead of in the control.
@@ -330,7 +600,7 @@ export default function FullExample() {
         //   </div>
         // ),
         // ClearIndicator, DropdownIndicator, Control, ValueContainer,
-        // IndicatorsContainer, Input, Menu, MenuList,
+        // IndicatorsContainer, Input, Menu, MenuList, GroupHeading,
         // LoadingMessage, NoOptionsMessage, SingleValue, MultiValue,
       }}
     />
@@ -378,6 +648,9 @@ import {
   mergeStyles,        // helper to merge styles from the `styles` prop
   SelectContext,      // React context exposing internal state
   useSelectContext,   // hook to read SelectContext from custom components
+  getThemeVars,       // color props → --rns-* CSS variables (theme a container)
+  colorPresets,       // { purple: '168 85 247', ... }
+  toRgbTriplet,       // '#a855f7' | 'purple' | 'rgb(...)' → '168 85 247'
 } from 'react-next-select'
 ```
 
@@ -385,7 +658,7 @@ import {
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `options` | `Option[]` | `[]` | List of selectable options. |
+| `options` | `(Option \| Group)[]` | `[]` | List of selectable options. A `Group` is `{ label, options: Option[] }`. |
 | `value` | `Option \| Option[]` | — | Controlled selected value. |
 | `defaultValue` | `Option \| Option[]` | `null` / `[]` | Uncontrolled initial value. |
 | `onChange` | `(value, meta) => void` | — | Selection change callback. `meta.action` is one of `select-option`, `remove-value`, `clear`. |
@@ -408,8 +681,35 @@ import {
 | `menuIsOpen` | `boolean` | — | Controlled menu open state. |
 | `onMenuOpen` / `onMenuClose` | `() => void` | — | Menu lifecycle callbacks. |
 | `closeMenuOnSelect` | `boolean` | `!isMulti` | Close menu after selecting an option. |
-| `blurInputOnSelect` | `boolean` | `true` | Blur the input after selecting. |
-| `menuPlacement` | `'bottom' \| 'top'` | `'bottom'` | Menu placement relative to control. |
+| `blurInputOnSelect` | `boolean` | `!isMulti` | Blur the input after selecting. Multi keeps focus so the keyboard keeps working. |
+| `debounceMs` | `number` | `0` | Async: wait this long after the last keystroke before calling `loadOptions`. |
+| `isCreatable` | `boolean` | `false` | Offer a "Create …" option for new text. |
+| `onCreateOption` | `(text) => void` | — | Handle a created option yourself (otherwise it's selected directly). |
+| `formatCreateLabel` | `(text) => ReactNode` | `Create "text"` | Label of the create option. |
+| `isValidNewOption` | `(text, selected, options) => boolean` | see [Creatable](#creatable-options) | When to offer the create option. |
+| `getNewOptionData` | `(text) => Option` | `{ value, label }` | Shape of a created option. |
+| `showSelectAll` | `boolean` | `false` | Multi: *Select all / Clear all* row for the visible options. |
+| `selectAllLabel` | `ReactNode \| ({ allSelected }) => ReactNode` | `Select all` / `Clear all` | Label of that row. |
+| `maxSelected` | `number` | — | Multi: disable the remaining options at this many. |
+| `highlightMatch` | `boolean` | `false` | Bold + underline the typed text in option labels. |
+| `menuPortalTarget` | `HTMLElement \| null` | — | Render the menu into this element (e.g. `document.body`). |
+| `menuPlacement` | `'bottom' \| 'top' \| 'auto'` | `'bottom'` | Menu placement relative to control. `auto` opens upward when there isn't room below. |
+| `isOptionDisabled` | `(option) => boolean` | `o => !!o.isDisabled` | Mark options unselectable; they're skipped by the keyboard. |
+| `isInvalid` | `boolean` | `false` | Error state: danger border + ring, `aria-invalid`. |
+| `showCheckmark` | `boolean` | `false` | Show a ✓ next to selected options in the menu. |
+| `color` | preset \| CSS color | — | Accent: one of 19 presets or any hex / rgb() / hsl(). Tints background, border, hover, focus, selected option, chips. |
+| `variant` | `'outline' \| 'filled' \| 'flushed' \| 'ghost' \| 'solid' \| 'elevated' \| 'glass' \| 'gradient' \| 'glow' \| 'pill'` | `'outline'` | Visual style of the control (see [variants](#variant-size-radius)). |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Control height, font size and option padding. |
+| `radius` | `number \| string` | `10px` | Corner radius (number = px). |
+| `bgColor` | CSS color | — | Control + menu background (turns the accent tint off). |
+| `borderColor` | CSS color | — | Control border at rest. |
+| `focusColor` | CSS color | accent | Focus border + ring. |
+| `textColor` | CSS color | — | Value, input and option text. |
+| `placeholderColor` | CSS color | — | Placeholder text. |
+| `menuBgColor` | CSS color | `bgColor` | Menu background. |
+| `optionHoverColor` | CSS color | accent 18% | Option hover background. |
+| `optionSelectedColor` | CSS color | accent 40% | Selected option background. |
+| `chipColor` | CSS color | accent 25% | Multi-value chip background + border. |
 | `showMenuSearchInput` | `boolean` | `false` | Render a separate search input inside the menu. |
 | `menuSearchPlaceholder` | `string` | `'Search...'` | Placeholder for the in-menu search input. |
 | `menuSearchInputProps` | `object` | `{}` | Extra props for the in-menu search `<input>`. |
@@ -425,7 +725,7 @@ import {
 | `aria-label` / `aria-labelledby` | `string` | — | Accessibility labels. |
 | `tabIndex` | `number` | `0` | Tab index on the control. |
 
-`Option` is any object — `{ value, label }` by default — or anything else if you provide `getOptionValue` / `getOptionLabel`.
+`Option` is any object — `{ value, label }` by default — or anything else if you provide `getOptionValue` / `getOptionLabel`. Optional fields the Select understands: `isDisabled`, `icon`, `description`.
 
 ## Styling
 
@@ -446,14 +746,28 @@ That one line restyles the focus border, focus ring, multi-value chips, and sele
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `--rns-accent` | `59 130 246` (RGB triplet) | Focus border + ring, selected option, hover, multi-value chip, scrollbar, search icon |
+| `--rns-tint` | `0` | Accent tint on the control background (0–1). The `color` prop sets `0.05`. |
+| `--rns-accent-2` | `--rns-accent` (RGB triplet) | Second stop of the `gradient` variant. The `color` prop sets accent hue + 40°. |
+| `--rns-accent-solid` | accent darkened 18% | Fill of the `solid` variant. The `color` prop darkens until white text reaches 4.5:1. |
+| `--rns-on-accent` | `#fff` | Text on the `solid` variant |
 | `--rns-border` | `203 213 225` (RGB triplet) | Legacy border fallback (control/menu borders now derive from `--rns-accent`) |
 | `--rns-bg` | `#fff` | Control + menu background |
+| `--rns-menu-bg` | `var(--rns-bg)` | Menu background |
 | `--rns-text` | `#0f172a` | Main text color |
-| `--rns-muted` | `#64748b` | Placeholder, icons, helper text |
+| `--rns-muted` | `#64748b` | Icons, helper text |
+| `--rns-placeholder` | `#94a3b8` | Placeholder text |
+| `--rns-control-border` | `rgb(accent / 0.35)` | Control border at rest |
+| `--rns-focus-border` | `rgb(accent)` | Control border on focus |
+| `--rns-focus-ring` | `rgb(accent / 0.22)` | Focus glow |
 | `--rns-option-hover` | `rgb(accent / 0.18)` | Option hover background (overrides the accent default) |
+| `--rns-option-selected` | `rgb(accent / 0.4)` | Selected option background |
+| `--rns-chip-bg` / `--rns-chip-border` / `--rns-chip-text` | accent 25% / 35% / text | Multi-value chips |
+| `--rns-danger` | `239 68 68` (RGB triplet) | `isInvalid` border + ring |
 | `--rns-disabled-bg` | `#f8fafc` | Disabled control background |
 | `--rns-radius` | `10px` | Corner radius (control, menu, search input) |
+| `--rns-font-size` | `14px` | Base font size |
 | `--rns-control-min-height` | `44px` | Minimum height of the control |
+| `--rns-indicator-size` | `32px` | Clear / dropdown button size |
 | `--rns-menu-max-height` | `320px` | Maximum height of the dropdown menu (includes optional search input) |
 
 Color variables that need alpha transparency (`--rns-accent`, `--rns-border`) are expressed as **space-separated RGB triplets** so they can be combined with `rgb(... / <alpha>)` internally — write `167 139 250`, not `rgb(167, 139, 250)` or `#a78bfa`.
@@ -644,7 +958,7 @@ function MyOption({ innerProps, data, isFocused }) {
 />
 ```
 
-Overridable component keys: `Control`, `ValueContainer`, `IndicatorsContainer`, `DropdownIndicator`, `ClearIndicator`, `Input`, `Menu`, `MenuList`, `Option`, `LoadingMessage`, `NoOptionsMessage`, `SingleValue`, `MultiValue`.
+Overridable component keys: `Control`, `ValueContainer`, `IndicatorsContainer`, `DropdownIndicator`, `ClearIndicator`, `Input`, `Menu`, `MenuList`, `Option`, `GroupHeading`, `LoadingMessage`, `NoOptionsMessage`, `SingleValue`, `MultiValue`.
 
 ## TypeScript
 
@@ -707,9 +1021,16 @@ Watch mode while developing:
 npm run dev
 ```
 
+Run the tests (Vitest + Testing Library; also run in CI and before every publish):
+
+```bash
+npm test          # once
+npm run test:watch
+```
+
 ## Publishing to npm
 
-The `prepublishOnly` script runs `npm run build` automatically, so a fresh `dist/` is produced before each publish.
+The `prepublishOnly` script runs the typecheck, the tests and the build automatically, so a broken build can't be published.
 
 ```bash
 # 1. Bump the version

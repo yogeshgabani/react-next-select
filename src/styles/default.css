@@ -2,51 +2,80 @@
    react-next-select — default stylesheet
 
    Theme via CSS custom properties. Override any of these on
-   :root, html, body, or a specific .rns__wrapper:
+   :root, html, body, or a specific .rns__wrapper (the color
+   props — color, bgColor, borderColor, ... — set them for you):
 
      --rns-accent       RGB triplet — focus, selected, chip   (default 59 130 246, blue-500)
-     --rns-border       RGB triplet — control + menu border   (default 203 213 225, slate-300)
+     --rns-tint         0–1 alpha   — accent tint on control  (default 0; `color` prop sets 0.05)
+     --rns-accent-2     RGB triplet — gradient variant's 2nd stop (`color` prop: accent hue +40°)
+     --rns-accent-solid CSS color   — solid variant's fill    (`color` prop: darkened for 4.5:1 white text)
+     --rns-on-accent    CSS color   — solid variant's text    (default #fff)
      --rns-bg           CSS color   — control + menu surface  (default #fff)
+     --rns-menu-bg      CSS color   — menu surface            (default var(--rns-bg))
      --rns-text         CSS color   — main text               (default #0f172a)
-     --rns-muted        CSS color   — placeholder, icons      (default #64748b)
+     --rns-muted        CSS color   — icons, helper text      (default #64748b)
+     --rns-placeholder  CSS color   — placeholder text        (default #94a3b8)
+     --rns-control-border CSS color — control border at rest  (default rgb(accent / 0.35))
+     --rns-focus-border CSS color   — control border on focus (default rgb(accent))
+     --rns-focus-ring   CSS color   — focus glow              (default rgb(accent / 0.22))
      --rns-option-hover CSS color   — option hover background (default rgb(accent / 0.18))
+     --rns-option-selected CSS color — selected option bg     (default rgb(accent / 0.4))
+     --rns-chip-bg / --rns-chip-border / --rns-chip-text      multi-value chips
+     --rns-danger       RGB triplet — isInvalid border/ring   (default 239 68 68)
      --rns-disabled-bg  CSS color   — disabled control bg     (default #f8fafc)
      --rns-radius       CSS length  — corner radius           (default 10px)
+     --rns-font-size    CSS length                            (default 14px)
      --rns-control-min-height                                 (default 44px)
+     --rns-indicator-size                                     (default 32px)
+     --rns-menu-max-height                                    (default 320px)
 
    Quick themes:
-     :root { --rns-accent: 167 139 250; }                      // purple
+     :root { --rns-accent: 168 85 247; }                       // purple
+     :root { --rns-accent: 168 85 247; --rns-tint: 0.05; }     // purple + tinted control
      :root { --rns-bg: #0f172a; --rns-text: #f8fafc;           // dark mode
-             --rns-border: 255 255 255; --rns-muted: #94a3b8; }
+             --rns-muted: #94a3b8; }
    ============================================================ */
 
 .rns__wrapper {
   position: relative;
   width: 100%;
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
+  font-size: var(--rns-font-size, 14px);
   line-height: 1.4;
 }
 
+/* The accent tint is a gradient layer over the surface color, so it works on
+   any background (light, dark, translucent) without knowing what it is. */
 .rns__control {
   display: flex;
   align-items: center;
   min-height: var(--rns-control-min-height, 44px);
-  border: 1px solid rgb(var(--rns-accent, 59 130 246) / 0.35);
+  border: 1px solid var(--rns-control-border, rgb(var(--rns-accent, 59 130 246) / 0.35));
   border-radius: var(--rns-radius, 10px);
-  background: var(--rns-bg, #fff);
+  background-color: var(--rns-bg, #fff);
+  background-image: linear-gradient(
+    rgb(var(--rns-accent, 59 130 246) / var(--rns-tint, 0)),
+    rgb(var(--rns-accent, 59 130 246) / var(--rns-tint, 0))
+  );
   cursor: default;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
 }
 
 .rns__control:hover {
-  border-color: rgb(var(--rns-accent, 59 130 246) / 0.55);
+  border-color: rgb(var(--rns-accent, 59 130 246) / 0.6);
+  background-image:
+    linear-gradient(rgb(var(--rns-accent, 59 130 246) / 0.04), rgb(var(--rns-accent, 59 130 246) / 0.04)),
+    linear-gradient(
+      rgb(var(--rns-accent, 59 130 246) / var(--rns-tint, 0)),
+      rgb(var(--rns-accent, 59 130 246) / var(--rns-tint, 0))
+    );
+  box-shadow: 0 2px 10px -3px rgb(var(--rns-accent, 59 130 246) / 0.3);
 }
 
 .rns__control:focus-within {
-  border-color: rgb(var(--rns-accent, 59 130 246));
-  box-shadow: 0 0 0 3px rgb(var(--rns-accent, 59 130 246) / 0.22);
+  border-color: var(--rns-focus-border, rgb(var(--rns-accent, 59 130 246)));
+  box-shadow: 0 0 0 3px var(--rns-focus-ring, rgb(var(--rns-accent, 59 130 246) / 0.22));
 }
 
 .rns__value-container {
@@ -69,11 +98,11 @@
 .rns__multi-value {
   display: inline-flex;
   align-items: stretch;
-  background: rgb(var(--rns-accent, 59 130 246) / 0.25);
-  border: 1px solid rgb(var(--rns-accent, 59 130 246) / 0.35);
-  color: var(--rns-text, #0f172a);
+  background: var(--rns-chip-bg, rgb(var(--rns-accent, 59 130 246) / 0.25));
+  border: 1px solid var(--rns-chip-border, rgb(var(--rns-accent, 59 130 246) / 0.35));
+  color: var(--rns-chip-text, var(--rns-text, #0f172a));
   border-radius: 6px;
-  font-size: 13px;
+  font-size: calc(var(--rns-font-size, 14px) - 1px);
   font-weight: 500;
   max-width: 100%;
   overflow: hidden;
@@ -99,7 +128,7 @@
   padding: 0 6px;
   line-height: 1;
   color: var(--rns-muted, #64748b);
-  border-left: 1px solid rgb(var(--rns-accent, 59 130 246) / 0.35);
+  border-left: 1px solid var(--rns-chip-border, rgb(var(--rns-accent, 59 130 246) / 0.35));
   transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -114,8 +143,12 @@
   background: rgb(var(--rns-accent, 59 130 246) / 0.35);
 }
 
+/* Zero basis instead of the input's ~150px intrinsic width: the input fills
+   whatever is left on the line (placeholder included) and never wraps a
+   narrow Select onto a second row. */
 .rns__input {
-  flex: 1 1 auto;
+  flex: 1 1 0px;
+  width: 0;
   min-width: 4px;
   margin: 0;
   padding: 6px 0;
@@ -126,15 +159,21 @@
   color: var(--rns-text, #0f172a);
 }
 
-.rns__input:read-only {
+/* In a multi-select, wrap below the chips when there's no room left to type. */
+.rns--is-multi .rns__input {
+  flex-basis: 60px;
+}
+
+.rns__input:read-only,
+.rns--is-multi .rns__input:read-only {
   cursor: default;
   caret-color: transparent;
   min-width: 1px;
-  flex: 0 0 auto;
+  flex-basis: 0px;
 }
 
 .rns__input::placeholder {
-  color: var(--rns-muted, #94a3b8);
+  color: var(--rns-placeholder, var(--rns-muted, #94a3b8));
 }
 
 .rns__indicators {
@@ -148,8 +187,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: var(--rns-indicator-size, 32px);
+  height: var(--rns-indicator-size, 32px);
   padding: 0;
   border: none;
   background: transparent;
@@ -160,7 +199,7 @@
 }
 
 .rns__indicator:hover {
-  color: var(--rns-text, #0f172a);
+  color: rgb(var(--rns-accent, 59 130 246));
 }
 
 .rns__clear-icon,
@@ -207,7 +246,7 @@
 .rns__menu-inner {
   border: 1px solid rgb(var(--rns-accent, 59 130 246) / 0.35);
   border-radius: var(--rns-radius, 10px);
-  background: var(--rns-bg, #fff);
+  background: var(--rns-menu-bg, var(--rns-bg, #fff));
   box-shadow: 0 20px 40px -8px rgb(0 0 0 / 0.18), 0 6px 12px -4px rgb(0 0 0 / 0.08);
   max-height: var(--rns-menu-max-height, 320px);
   overflow: hidden;
@@ -267,7 +306,7 @@
   border: 1px solid rgb(var(--rns-accent, 59 130 246) / 0.35);
   border-radius: 8px;
   padding: 0 10px;
-  background: var(--rns-bg, #fff);
+  background: var(--rns-menu-bg, var(--rns-bg, #fff));
   box-sizing: border-box;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -291,7 +330,7 @@
 }
 
 .rns__menu-search-input::placeholder {
-  color: var(--rns-muted, #94a3b8);
+  color: var(--rns-placeholder, var(--rns-muted, #94a3b8));
 }
 
 .rns__menu-search-input-wrap:focus-within {
@@ -310,8 +349,27 @@
   flex: 0 0 auto;
 }
 
+/* ---------- Groups ---------- */
+
+.rns__group + .rns__group {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgb(var(--rns-accent, 59 130 246) / 0.15);
+}
+
+.rns__group-heading {
+  padding: 8px 12px 4px;
+  color: var(--rns-muted, #64748b);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ---------- Options ---------- */
+
 .rns__option {
-  padding: 10px 12px;
+  padding: var(--rns-option-padding, 10px 12px);
   cursor: pointer;
   color: var(--rns-text, #0f172a);
   border-radius: 6px;
@@ -331,14 +389,122 @@
 
 .rns__option[aria-selected='true'],
 .rns__option--selected {
-  background: rgb(var(--rns-accent, 59 130 246) / 0.4);
+  background: var(--rns-option-selected, rgb(var(--rns-accent, 59 130 246) / 0.4));
   color: var(--rns-text, #0f172a);
   font-weight: 600;
 }
 
+/* Hovering a selected option layers a little more accent on top of
+   whatever the selected background is (including custom ones). */
 .rns__option[aria-selected='true']:hover,
 .rns__option--selected.rns__option--focused {
-  background: rgb(var(--rns-accent, 59 130 246) / 0.5);
+  background-image: linear-gradient(
+    rgb(var(--rns-accent, 59 130 246) / 0.14),
+    rgb(var(--rns-accent, 59 130 246) / 0.14)
+  );
+}
+
+.rns__option.rns__option--disabled,
+.rns__option.rns__option--disabled:hover {
+  background: transparent;
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* icon · label (+ description) · ✓ */
+.rns__option--rich {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rns__option-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.rns__option-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rns__option-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rns__option-description {
+  margin-top: 1px;
+  color: var(--rns-muted, #64748b);
+  font-size: 0.86em;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rns__option-check {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.rns__highlight {
+  background: transparent;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgb(var(--rns-accent, 59 130 246));
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+.rns__option--create .rns__option-icon {
+  color: rgb(var(--rns-accent, 59 130 246));
+}
+
+.rns__option--select-all {
+  font-weight: 600;
+  margin-bottom: 4px;
+  box-shadow: 0 1px 0 0 rgb(var(--rns-accent, 59 130 246) / 0.15);
+  border-radius: 6px 6px 0 0;
+}
+
+/* Icons next to the selected value(s) */
+.rns__single-value--with-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rns__single-value-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rns__value-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  line-height: 1;
+}
+
+.rns__multi-value__label .rns__value-icon {
+  margin-right: 5px;
+}
+
+/* Zero-height anchor for a menu rendered into `menuPortalTarget` */
+.rns__portal {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: var(--rns-font-size, 14px);
+  line-height: 1.4;
 }
 
 .rns__loading-message,
@@ -349,11 +515,324 @@
   text-align: center;
 }
 
-.rns__wrapper.rns--is-disabled .rns__control {
-  background: var(--rns-disabled-bg, #f8fafc);
+/* ---------- Variants (variant="filled" | "flushed" | "ghost") ---------- */
+
+.rns--filled .rns__control {
+  border-color: transparent;
+  background-image: linear-gradient(
+    rgb(var(--rns-accent, 59 130 246) / 0.1),
+    rgb(var(--rns-accent, 59 130 246) / 0.1)
+  );
+}
+
+.rns--filled .rns__control:hover {
+  border-color: transparent;
+  background-image: linear-gradient(
+    rgb(var(--rns-accent, 59 130 246) / 0.16),
+    rgb(var(--rns-accent, 59 130 246) / 0.16)
+  );
+}
+
+.rns--filled .rns__control:focus-within {
+  border-color: var(--rns-focus-border, rgb(var(--rns-accent, 59 130 246)));
+  background-image: none;
+}
+
+.rns--flushed .rns__control {
+  border-width: 0 0 1px;
+  border-radius: 0;
+  background-color: transparent;
+  background-image: none;
+}
+
+.rns--flushed .rns__control:hover {
+  background-image: none;
+  box-shadow: none;
+}
+
+.rns--flushed .rns__control:focus-within {
+  box-shadow: 0 1px 0 0 var(--rns-focus-border, rgb(var(--rns-accent, 59 130 246)));
+}
+
+.rns--flushed .rns__value-container {
+  padding-left: 0;
+}
+
+.rns--ghost .rns__control {
+  border-color: transparent;
+  background-color: transparent;
+  background-image: none;
+}
+
+.rns--ghost .rns__control:hover {
+  border-color: transparent;
+  box-shadow: none;
+  background-image: linear-gradient(
+    rgb(var(--rns-accent, 59 130 246) / 0.08),
+    rgb(var(--rns-accent, 59 130 246) / 0.08)
+  );
+}
+
+.rns--ghost .rns__control:focus-within {
+  border-color: var(--rns-focus-border, rgb(var(--rns-accent, 59 130 246)));
+  box-shadow: 0 0 0 3px var(--rns-focus-ring, rgb(var(--rns-accent, 59 130 246) / 0.22));
+  background-image: linear-gradient(
+    rgb(var(--rns-accent, 59 130 246) / 0.06),
+    rgb(var(--rns-accent, 59 130 246) / 0.06)
+  );
+}
+
+/* solid — the control is filled with the accent, white text. The `color`
+   prop computes --rns-accent-solid dark enough for 4.5:1 white text. */
+.rns--solid .rns__control {
+  --rns-text: var(--rns-on-accent, #fff);
+  --rns-muted: rgb(255 255 255 / 0.78);
+  --rns-placeholder: rgb(255 255 255 / 0.78);
+  --rns-chip-bg: rgb(255 255 255 / 0.2);
+  --rns-chip-border: rgb(255 255 255 / 0.32);
+  --rns-chip-text: var(--rns-on-accent, #fff);
+  border-color: transparent;
+  background-color: var(
+    --rns-accent-solid,
+    color-mix(in srgb, rgb(var(--rns-accent, 59 130 246)) 82%, black)
+  );
+  background-image: none;
+}
+
+.rns--solid .rns__control:hover {
+  border-color: transparent;
+  background-image: linear-gradient(rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.1));
+  box-shadow: 0 4px 14px -4px rgb(var(--rns-accent, 59 130 246) / 0.6);
+}
+
+.rns--solid .rns__control:focus-within {
+  border-color: rgb(var(--rns-accent, 59 130 246));
+  box-shadow: 0 0 0 3px rgb(var(--rns-accent, 59 130 246) / 0.35);
+}
+
+.rns--solid .rns__indicator:hover,
+.rns--solid .rns__multi-value__remove:hover {
+  color: var(--rns-on-accent, #fff);
+}
+
+.rns--solid .rns__multi-value__remove:hover {
+  background: rgb(255 255 255 / 0.22);
+}
+
+/* elevated — no border, a soft shadow that lifts on hover */
+.rns--elevated .rns__control {
+  border-color: transparent;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 14px -4px rgb(0 0 0 / 0.18);
+}
+
+.rns--elevated .rns__control:hover {
+  border-color: transparent;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.06), 0 12px 28px -8px rgb(var(--rns-accent, 59 130 246) / 0.45);
+}
+
+.rns--elevated .rns__control:focus-within {
+  border-color: var(--rns-focus-border, rgb(var(--rns-accent, 59 130 246)));
+  box-shadow:
+    0 0 0 3px var(--rns-focus-ring, rgb(var(--rns-accent, 59 130 246) / 0.22)),
+    0 12px 28px -8px rgb(var(--rns-accent, 59 130 246) / 0.35);
+}
+
+/* glass — frosted, translucent; made for gradients and images behind it */
+.rns--glass .rns__control {
+  border-color: rgb(var(--rns-accent, 59 130 246) / 0.25);
+  background-color: rgb(var(--rns-accent, 59 130 246) / 0.06);
+  background-image: linear-gradient(135deg, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.02));
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 8px 24px -14px rgb(0 0 0 / 0.35);
+}
+
+.rns--glass .rns__control:hover {
+  border-color: rgb(var(--rns-accent, 59 130 246) / 0.5);
+  background-color: rgb(var(--rns-accent, 59 130 246) / 0.1);
+  background-image: linear-gradient(135deg, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0.04));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), 0 10px 28px -12px rgb(var(--rns-accent, 59 130 246) / 0.5);
+}
+
+.rns--glass .rns__control:focus-within {
+  border-color: var(--rns-focus-border, rgb(var(--rns-accent, 59 130 246)));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    0 0 0 3px var(--rns-focus-ring, rgb(var(--rns-accent, 59 130 246) / 0.22));
+}
+
+/* gradient — a two-stop gradient border (accent → --rns-accent-2), drawn
+   with a masked pseudo-element so it works on any background */
+.rns--gradient .rns__control {
+  position: relative;
+  border-color: transparent;
+}
+
+.rns--gradient .rns__control::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  padding: 1.5px;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    rgb(var(--rns-accent, 59 130 246)),
+    rgb(var(--rns-accent-2, var(--rns-accent, 59 130 246)))
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.75;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.rns--gradient .rns__control:hover {
+  border-color: transparent;
+  box-shadow: 0 4px 18px -6px rgb(var(--rns-accent-2, var(--rns-accent, 59 130 246)) / 0.55);
+}
+
+.rns--gradient .rns__control:focus-within {
+  border-color: transparent;
+  box-shadow:
+    0 0 0 3px rgb(var(--rns-accent, 59 130 246) / 0.18),
+    0 0 22px -4px rgb(var(--rns-accent-2, var(--rns-accent, 59 130 246)) / 0.55);
+}
+
+.rns--gradient .rns__control:hover::before,
+.rns--gradient .rns__control:focus-within::before {
+  opacity: 1;
+}
+
+/* glow — neon-style halo, strongest on dark backgrounds */
+.rns--glow .rns__control {
+  border-color: rgb(var(--rns-accent, 59 130 246) / 0.7);
+  background-image: linear-gradient(
+    rgb(var(--rns-accent, 59 130 246) / 0.06),
+    rgb(var(--rns-accent, 59 130 246) / 0.06)
+  );
+  box-shadow: 0 0 0 1px rgb(var(--rns-accent, 59 130 246) / 0.12), 0 0 14px -2px rgb(var(--rns-accent, 59 130 246) / 0.45);
+}
+
+.rns--glow .rns__control:hover {
+  border-color: rgb(var(--rns-accent, 59 130 246));
+  box-shadow: 0 0 0 1px rgb(var(--rns-accent, 59 130 246) / 0.2), 0 0 22px 0 rgb(var(--rns-accent, 59 130 246) / 0.55);
+}
+
+.rns--glow .rns__control:focus-within {
+  border-color: rgb(var(--rns-accent, 59 130 246));
+  box-shadow: 0 0 0 3px rgb(var(--rns-accent, 59 130 246) / 0.25), 0 0 26px 2px rgb(var(--rns-accent, 59 130 246) / 0.5);
+}
+
+/* pill — fully rounded control and chips (the menu keeps --rns-radius) */
+.rns--pill .rns__control {
+  border-radius: 999px;
+}
+
+.rns--pill .rns__value-container {
+  padding-left: 14px;
+}
+
+.rns--pill .rns__indicators {
+  padding-right: 6px;
+}
+
+.rns--pill .rns__multi-value {
+  border-radius: 999px;
+}
+
+.rns--pill .rns__multi-value__label {
+  padding-left: 10px;
+}
+
+.rns--pill .rns__multi-value__remove {
+  padding-right: 8px;
+}
+
+/* ---------- Sizes (size="sm" | "lg"; md is the default) ---------- */
+
+.rns--size-sm {
+  --rns-font-size: 13px;
+  --rns-control-min-height: 34px;
+  --rns-indicator-size: 28px;
+  --rns-option-padding: 7px 10px;
+}
+
+.rns--size-sm .rns__value-container {
+  padding: 2px 6px;
+}
+
+.rns--size-sm .rns__input {
+  padding: 3px 0;
+}
+
+.rns--size-sm .rns__multi-value__label {
+  padding: 1px 6px;
+}
+
+.rns--size-lg {
+  --rns-font-size: 16px;
+  --rns-control-min-height: 52px;
+  --rns-indicator-size: 36px;
+  --rns-option-padding: 12px 14px;
+}
+
+/* ---------- States ---------- */
+
+.rns__wrapper.rns--is-invalid .rns__control,
+.rns__wrapper.rns--is-invalid .rns__control:hover {
+  border-color: rgb(var(--rns-danger, 239 68 68));
+}
+
+.rns__wrapper.rns--is-invalid .rns__control:focus-within {
+  border-color: rgb(var(--rns-danger, 239 68 68));
+  box-shadow: 0 0 0 3px rgb(var(--rns-danger, 239 68 68) / 0.22);
+}
+
+.rns__wrapper.rns--is-invalid.rns--flushed .rns__control:focus-within {
+  box-shadow: 0 1px 0 0 rgb(var(--rns-danger, 239 68 68));
+}
+
+.rns__wrapper.rns--is-invalid.rns--gradient .rns__control::before {
+  display: none;
+}
+
+.rns__wrapper.rns--is-invalid.rns--glow .rns__control {
+  box-shadow: 0 0 14px -2px rgb(var(--rns-danger, 239 68 68) / 0.45);
+}
+
+.rns__wrapper.rns--is-disabled .rns__control,
+.rns__wrapper.rns--is-disabled .rns__control:hover {
+  background-color: var(--rns-disabled-bg, #f8fafc);
+  background-image: none;
   border-color: rgb(var(--rns-accent, 59 130 246) / 0.2);
+  box-shadow: none;
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+.rns__wrapper.rns--is-disabled.rns--ghost .rns__control,
+.rns__wrapper.rns--is-disabled.rns--flushed .rns__control {
+  background-color: transparent;
+}
+
+.rns__wrapper.rns--is-disabled.rns--ghost .rns__control {
+  border-color: transparent;
+}
+
+/* A greyed-out solid control would lose its white text — keep the fill, fade it. */
+.rns__wrapper.rns--is-disabled.rns--solid .rns__control,
+.rns__wrapper.rns--is-disabled.rns--solid .rns__control:hover {
+  background-color: var(
+    --rns-accent-solid,
+    color-mix(in srgb, rgb(var(--rns-accent, 59 130 246)) 82%, black)
+  );
+  border-color: transparent;
+  opacity: 0.5;
+}
+
+.rns__wrapper.rns--is-disabled.rns--gradient .rns__control::before {
+  opacity: 0.35;
 }
 
 .rns__wrapper.rns--is-disabled .rns__input {

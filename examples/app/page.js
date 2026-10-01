@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Select } from 'react-next-select'
+import { Select, colorPresets } from 'react-next-select'
 
 const STATIC_OPTIONS = [
   { value: 'next', label: 'Next.js' },
@@ -32,6 +32,66 @@ const FRAMEWORK_OPTIONS = [
   { value: 'astro', label: 'Astro' },
 ]
 
+const GROUPED_OPTIONS = [
+  {
+    label: 'UI libraries',
+    options: [
+      { value: 'react', label: 'React' },
+      { value: 'vue', label: 'Vue' },
+      { value: 'svelte', label: 'Svelte' },
+      { value: 'solid', label: 'SolidJS' },
+    ],
+  },
+  {
+    label: 'Meta-frameworks',
+    options: [
+      { value: 'next', label: 'Next.js' },
+      { value: 'remix', label: 'Remix' },
+      { value: 'astro', label: 'Astro' },
+      { value: 'nuxt', label: 'Nuxt' },
+    ],
+  },
+  {
+    label: 'Bundlers',
+    options: [
+      { value: 'vite', label: 'Vite' },
+      { value: 'webpack', label: 'Webpack' },
+      { value: 'esbuild', label: 'Esbuild' },
+    ],
+  },
+]
+
+const PLAN_OPTIONS = [
+  { value: 'free', label: 'Free' },
+  { value: 'pro', label: 'Pro' },
+  { value: 'team', label: 'Team — coming soon', isDisabled: true },
+  { value: 'business', label: 'Business' },
+  { value: 'enterprise', label: 'Enterprise — contact sales', isDisabled: true },
+]
+
+const COUNTRY_OPTIONS = [
+  { value: 'in', label: 'India' },
+  { value: 'us', label: 'United States' },
+  { value: 'gb', label: 'United Kingdom' },
+  { value: 'de', label: 'Germany' },
+  { value: 'jp', label: 'Japan' },
+]
+
+const TAG_OPTIONS = [
+  { value: 'bug', label: 'bug' },
+  { value: 'feature', label: 'feature' },
+  { value: 'docs', label: 'docs' },
+  { value: 'design', label: 'design' },
+]
+
+const PAYMENT_OPTIONS = [
+  { value: 'card', label: 'Credit card', icon: '💳', description: 'Visa, Mastercard, Amex' },
+  { value: 'upi', label: 'UPI', icon: '📱', description: 'Instant, India only' },
+  { value: 'bank', label: 'Bank transfer', icon: '🏦', description: '1–2 business days' },
+  { value: 'cod', label: 'Cash on delivery', icon: '💵', description: 'Pay when it arrives' },
+  { value: 'wallet', label: 'Wallet balance', icon: '👛', description: 'Use your stored credit' },
+]
+
 function loadOptions(input) {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -58,7 +118,7 @@ const FEATURES = [
     body: 'Style every part via the `styles` prop, or replace components entirely.',
   },
   {
-    icon: '🪶',
+    icon: '🍃',
     title: 'Lightweight',
     body: 'No heavy dependencies. Tree-shakeable ESM build for tiny bundles.',
   },
@@ -75,9 +135,34 @@ const THEME_PRESETS = [
 
 const VERSION_HISTORY = [
   {
+    version: '0.5.0',
+    date: 'Oct 2026',
+    latest: true,
+    title: 'Color props, creatable, select all, portal & more',
+    tags: ['feature', 'fix'],
+    items: [
+      '`isCreatable` — offer “Create …” for new text; handle it with `onCreateOption` or let the Select pick it. Customize with `formatCreateLabel`, `isValidNewOption`, `getNewOptionData`.',
+      '`showSelectAll` (Select all / Clear all, respects the search) and `maxSelected` for multi-select.',
+      '`highlightMatch` underlines the typed text in option labels; `icon` and `description` on an option render automatically.',
+      '`menuPortalTarget` renders the menu into another element (e.g. `document.body`) so modals and `overflow: hidden` parents can\'t clip it.',
+      '`debounceMs` for async search — one request after typing pauses instead of one per keystroke.',
+      'Fix: multi-select keeps focus after picking an option, so arrow keys / Enter / Escape keep working (`blurInputOnSelect` now defaults to `!isMulti`).',
+      'Fix: narrow Selects no longer wrap the input onto a second row.',
+      'Test suite (Vitest + Testing Library, 70 tests) and GitHub Actions CI.',
+      '`color` prop — 19 presets (`purple`, `emerald`, `rose`, …) or any hex / rgb() / hsl() value. Border, hover glow, focus ring, selected option, chips and scrollbar all retint, and the control gets a soft tinted background.',
+      'Per-part color props: `bgColor`, `borderColor`, `focusColor`, `textColor`, `placeholderColor`, `menuBgColor`, `optionHoverColor`, `optionSelectedColor`, `chipColor`, plus `radius`.',
+      '`variant` prop — 10 styles: `outline` (default), `filled`, `flushed`, `ghost`, `solid` (accent fill, white text at 4.5:1+), `elevated`, `glass`, `gradient` (two-stop gradient border), `glow`, `pill`. `size` prop — `sm`, `md` (default), `lg`.',
+      'Props Playground now covers every prop — color presets, all variants, size, radius, per-part colors, creatable, select all, max limit, portal, grouped / icon datasets, async + debounce.',
+      'Grouped options — pass `{ label, options: [...] }`. Search filters inside groups and the keyboard moves across them. New `GroupHeading` component slot.',
+      'Disabled options via `option.isDisabled` or a custom `isOptionDisabled` — greyed out, unclickable, and skipped by Arrow / Home / End.',
+      '`isInvalid` error state (danger border + ring, `aria-invalid`) and `showCheckmark` for a ✓ on selected options.',
+      'Fix: `menuPlacement="auto"` was typed but not implemented — it now opens the menu upward when there isn\'t room below.',
+      'Hover effect on the control (accent border, faint tint, soft glow). New `getThemeVars()` and `colorPresets` exports to theme a whole section at once.',
+    ],
+  },
+  {
     version: '0.4.0',
     date: 'Aug 2026',
-    latest: true,
     title: 'TypeScript types & npm discoverability',
     tags: ['feature'],
     items: [
@@ -180,52 +265,54 @@ const rgbToHex = (rgbStr) => {
 
 /* ---------- Reusable form controls for PropsPlayground ---------- */
 
-function Toggle({ label, checked, onChange, hint }) {
+const fieldCard = {
+  padding: '10px 12px',
+  background: 'rgb(var(--surface-rgb) / 0.04)',
+  border: '1px solid rgb(var(--border-rgb) / 0.08)',
+  borderRadius: 10,
+}
+
+const fieldLabel = {
+  fontSize: 13,
+  fontWeight: 600,
+  color: 'var(--text-primary)',
+}
+
+function Toggle({ label, checked, onChange, hint, disabled }) {
   return (
     <label
       style={{
+        ...fieldCard,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: 12,
-        padding: '10px 12px',
-        background: 'rgb(var(--surface-rgb) / 0.04)',
-        border: '1px solid rgb(var(--border-rgb) / 0.08)',
-        borderRadius: 10,
-        cursor: 'pointer',
-        transition: 'background 0.2s, border-color 0.2s',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.45 : 1,
+        transition: 'background 0.2s, border-color 0.2s, opacity 0.2s',
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-        <code
-          style={{
-            fontSize: 13,
-            fontWeight: 600,
-            color: 'var(--text-primary)',
-          }}
-        >
-          {label}
-        </code>
-        {hint && (
-          <span style={{ fontSize: 11, color: 'var(--text-soft)' }}>{hint}</span>
-        )}
+        <code style={fieldLabel}>{label}</code>
+        {hint && <span style={{ fontSize: 11, color: 'var(--text-soft)' }}>{hint}</span>}
       </div>
-      <span
-        onClick={(e) => {
-          e.preventDefault()
-          onChange(!checked)
-        }}
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        disabled={disabled}
+        onClick={() => onChange(!checked)}
         style={{
           flexShrink: 0,
           width: 38,
           height: 22,
+          padding: 0,
+          border: 'none',
           borderRadius: 999,
-          background: checked
-            ? 'rgb(var(--rns-accent))'
-            : 'rgb(var(--border-rgb) / 0.2)',
+          background: checked ? 'rgb(var(--rns-accent))' : 'rgb(var(--border-rgb) / 0.2)',
           position: 'relative',
           transition: 'background 0.2s',
-          cursor: 'pointer',
+          cursor: 'inherit',
         }}
       >
         <span
@@ -241,35 +328,23 @@ function Toggle({ label, checked, onChange, hint }) {
             boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
           }}
         />
-      </span>
+      </button>
     </label>
   )
 }
 
-function Segmented({ label, value, options, onChange }) {
+function Segmented({ label, value, options, onChange, minItemWidth }) {
   return (
-    <div
-      style={{
-        padding: '10px 12px',
-        background: 'rgb(var(--surface-rgb) / 0.04)',
-        border: '1px solid rgb(var(--border-rgb) / 0.08)',
-        borderRadius: 10,
-      }}
-    >
-      <code
-        style={{
-          fontSize: 13,
-          fontWeight: 600,
-          color: 'var(--text-primary)',
-          display: 'block',
-          marginBottom: 8,
-        }}
-      >
-        {label}
-      </code>
+    <div style={fieldCard}>
+      <code style={{ ...fieldLabel, display: 'block', marginBottom: 8 }}>{label}</code>
       <div
         style={{
-          display: 'flex',
+          ...(minItemWidth
+            ? {
+                display: 'grid',
+                gridTemplateColumns: `repeat(auto-fill, minmax(${minItemWidth}px, 1fr))`,
+              }
+            : { display: 'flex' }),
           gap: 4,
           padding: 3,
           background: 'rgb(var(--surface-strong-rgb) / 0.4)',
@@ -281,6 +356,8 @@ function Segmented({ label, value, options, onChange }) {
           return (
             <button
               key={opt}
+              type="button"
+              aria-pressed={active}
               onClick={() => onChange(opt)}
               style={{
                 flex: 1,
@@ -306,32 +383,17 @@ function Segmented({ label, value, options, onChange }) {
   )
 }
 
-function TextField({ label, value, onChange, disabled }) {
+function TextField({ label, value, onChange, disabled, type = 'text', placeholder, hint }) {
   return (
-    <div
-      style={{
-        padding: '10px 12px',
-        background: 'rgb(var(--surface-rgb) / 0.04)',
-        border: '1px solid rgb(var(--border-rgb) / 0.08)',
-        borderRadius: 10,
-        opacity: disabled ? 0.5 : 1,
-      }}
-    >
-      <code
-        style={{
-          fontSize: 13,
-          fontWeight: 600,
-          color: 'var(--text-primary)',
-          display: 'block',
-          marginBottom: 8,
-        }}
-      >
-        {label}
-      </code>
+    <div style={{ ...fieldCard, opacity: disabled ? 0.45 : 1 }}>
+      <code style={{ ...fieldLabel, display: 'block', marginBottom: 8 }}>{label}</code>
       <input
-        type="text"
+        type={type}
         value={value}
         disabled={disabled}
+        placeholder={placeholder}
+        aria-label={label}
+        min={type === 'number' ? 0 : undefined}
         onChange={(e) => onChange(e.target.value)}
         style={{
           width: '100%',
@@ -345,9 +407,255 @@ function TextField({ label, value, onChange, disabled }) {
           fontFamily: 'inherit',
         }}
       />
+      {hint && (
+        <span style={{ display: 'block', marginTop: 6, fontSize: 11, color: 'var(--text-soft)' }}>
+          {hint}
+        </span>
+      )}
     </div>
   )
 }
+
+/** The `color` prop: preset swatches, "none", and a custom picker. */
+function ColorSwatchField({ label, value, onChange }) {
+  const isPreset = !!value && Object.hasOwn(colorPresets, value)
+  const swatch = (active) => ({
+    aspectRatio: '1',
+    width: '100%',
+    padding: 0,
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer',
+    boxShadow: active
+      ? '0 0 0 2px var(--bg-body), 0 0 0 4px rgb(var(--rns-accent))'
+      : 'inset 0 0 0 1px rgb(0 0 0 / 0.15)',
+    transition: 'box-shadow 0.15s',
+  })
+  return (
+    <div style={fieldCard}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+          marginBottom: 8,
+        }}
+      >
+        <code style={fieldLabel}>{label}</code>
+        <code style={{ fontSize: 11, color: 'var(--text-soft)' }}>
+          {value ? `"${value}"` : 'not set'}
+        </code>
+      </div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(20px, 1fr))',
+          gap: 6,
+        }}
+      >
+        <button
+          type="button"
+          title="No color (default)"
+          aria-label="No color"
+          aria-pressed={!value}
+          onClick={() => onChange('')}
+          style={{
+            ...swatch(!value),
+            background:
+              'linear-gradient(135deg, transparent 45%, #f43f5e 45%, #f43f5e 55%, transparent 55%), rgb(var(--surface-strong-rgb) / 0.6)',
+          }}
+        />
+        {PRESET_NAMES.map((name) => (
+          <button
+            key={name}
+            type="button"
+            title={name}
+            aria-label={`color ${name}`}
+            aria-pressed={value === name}
+            onClick={() => onChange(name)}
+            style={{ ...swatch(value === name), background: rgbToHex(colorPresets[name]) }}
+          />
+        ))}
+        <label
+          title="Custom color"
+          style={{
+            ...swatch(!!value && !isPreset),
+            position: 'relative',
+            overflow: 'hidden',
+            background: 'conic-gradient(#f43f5e, #fbbf24, #34d399, #38bdf8, #a855f7, #f43f5e)',
+          }}
+        >
+          <input
+            type="color"
+            aria-label="Custom color"
+            value={value && !isPreset ? value : '#a855f7'}
+            onChange={(e) => onChange(e.target.value)}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              opacity: 0,
+              cursor: 'pointer',
+            }}
+          />
+        </label>
+      </div>
+    </div>
+  )
+}
+
+/** An optional CSS color prop (bgColor, borderColor, ...) with a clear button. */
+function ColorInput({ label, value, onChange }) {
+  return (
+    <div style={{ ...fieldCard, display: 'flex', alignItems: 'center', gap: 10 }}>
+      <input
+        type="color"
+        aria-label={label}
+        value={value || '#ffffff'}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          width: 30,
+          height: 30,
+          flexShrink: 0,
+          padding: 0,
+          border: '1px solid rgb(var(--border-rgb) / 0.15)',
+          borderRadius: 6,
+          background: 'transparent',
+          cursor: 'pointer',
+        }}
+      />
+      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
+        <code style={{ ...fieldLabel, fontSize: 12 }}>{label}</code>
+        <code style={{ fontSize: 11, color: value ? 'var(--text-secondary)' : 'var(--text-soft)' }}>
+          {value || 'not set'}
+        </code>
+      </div>
+      {value && (
+        <button
+          type="button"
+          aria-label={`Clear ${label}`}
+          onClick={() => onChange('')}
+          style={{
+            flexShrink: 0,
+            width: 24,
+            height: 24,
+            border: 'none',
+            borderRadius: 6,
+            background: 'rgb(var(--border-rgb) / 0.1)',
+            color: 'var(--text-muted)',
+            cursor: 'pointer',
+            fontSize: 14,
+            lineHeight: 1,
+          }}
+        >
+          ×
+        </button>
+      )}
+    </div>
+  )
+}
+
+function RangeField({ label, value, onChange, min, max, fallback }) {
+  const isSet = value !== ''
+  return (
+    <div style={fieldCard}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+          marginBottom: 8,
+        }}
+      >
+        <code style={fieldLabel}>{label}</code>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <code style={{ fontSize: 11, color: isSet ? 'var(--text-secondary)' : 'var(--text-soft)' }}>
+            {isSet ? `{${value}}` : 'default'}
+          </code>
+          {isSet && (
+            <button
+              type="button"
+              aria-label={`Reset ${label}`}
+              onClick={() => onChange('')}
+              style={{
+                border: 'none',
+                background: 'none',
+                color: 'var(--text-soft)',
+                cursor: 'pointer',
+                fontSize: 13,
+                padding: 0,
+              }}
+            >
+              ↺
+            </button>
+          )}
+        </span>
+      </div>
+      <input
+        type="range"
+        aria-label={label}
+        min={min}
+        max={max}
+        value={isSet ? value : fallback}
+        onChange={(e) => onChange(e.target.value)}
+        style={{ width: '100%', accentColor: 'rgb(var(--rns-accent))' }}
+      />
+    </div>
+  )
+}
+
+/** Picks from a list using the package's own Select. */
+function SelectField({ label, value, options, onChange }) {
+  const items = options.map((o) => ({ value: o, label: o }))
+  return (
+    <div style={fieldCard}>
+      <code style={{ ...fieldLabel, display: 'block', marginBottom: 8 }}>{label}</code>
+      <Select
+        size="sm"
+        options={items}
+        value={items.find((o) => o.value === value) ?? null}
+        onChange={(o) => onChange(o.value)}
+        isSearchable={false}
+        aria-label={label}
+      />
+    </div>
+  )
+}
+
+const VARIANTS = [
+  'outline',
+  'filled',
+  'flushed',
+  'ghost',
+  'solid',
+  'elevated',
+  'glass',
+  'gradient',
+  'glow',
+  'pill',
+]
+
+const PLAYGROUND_DATASETS = {
+  flat: { options: STATIC_OPTIONS, name: 'options' },
+  grouped: { options: GROUPED_OPTIONS, name: 'groupedOptions' },
+  icons: { options: PAYMENT_OPTIONS, name: 'optionsWithIcons' },
+}
+
+// A couple of options per dataset to show disabled options.
+const PLAYGROUND_BLOCKED = new Set(['rollup', 'snowpack', 'svelte', 'nuxt', 'cod'])
+
+const COLOR_PROPS = [
+  'bgColor',
+  'borderColor',
+  'focusColor',
+  'textColor',
+  'placeholderColor',
+  'menuBgColor',
+  'optionHoverColor',
+  'optionSelectedColor',
+  'chipColor',
+]
 
 const PROPS_DEFAULTS = {
   isMulti: false,
@@ -360,20 +668,36 @@ const PROPS_DEFAULTS = {
   menuPlacement: 'bottom',
   placeholder: 'Pick an option…',
   menuSearchPlaceholder: 'Search options…',
+  color: '',
+  variant: 'outline',
+  size: 'md',
+  radius: '',
+  showCheckmark: false,
+  isInvalid: false,
+  highlightMatch: false,
+  isCreatable: false,
+  showSelectAll: false,
+  maxSelected: '',
+  usePortal: false,
+  disableSome: false,
+  dataset: 'flat',
+  isAsync: false,
+  debounceMs: '300',
+  ...Object.fromEntries(COLOR_PROPS.map((k) => [k, ''])),
 }
 
-function PropsPlayground({ options }) {
+const flatOptions = (list) => list.flatMap((item) => item.options ?? [item])
+
+function PropsPlayground() {
   const [config, setConfig] = useState(PROPS_DEFAULTS)
   const [value, setValue] = useState(null)
   const [copied, setCopied] = useState(false)
 
   const set = (key, val) => {
-    setConfig((c) => {
-      const next = { ...c, [key]: val }
-      // reset value if multi toggles to keep types consistent
-      if (key === 'isMulti') setValue(val ? [] : null)
-      return next
-    })
+    setConfig((c) => ({ ...c, [key]: val }))
+    // Keep the value's shape in sync with the mode / option list.
+    if (key === 'isMulti') setValue(val ? [] : null)
+    if (key === 'dataset') setValue(config.isMulti ? [] : null)
   }
 
   const reset = () => {
@@ -381,8 +705,40 @@ function PropsPlayground({ options }) {
     setValue(null)
   }
 
+  const dataset = PLAYGROUND_DATASETS[config.dataset]
+  const loadPlaygroundOptions = useCallback(
+    (input) =>
+      new Promise((resolve) => {
+        setTimeout(() => {
+          const q = input.trim().toLowerCase()
+          resolve(flatOptions(dataset.options).filter((o) => o.label.toLowerCase().includes(q)))
+        }, 400)
+      }),
+    [dataset],
+  )
+
+  const multiOnly = !config.isMulti
+  const debounce = Number(config.debounceMs) || 0
+  const colorProps = Object.fromEntries(
+    COLOR_PROPS.filter((k) => config[k]).map((k) => [k, config[k]]),
+  )
+
   // Build the JSX snippet from current config
-  const lines = ['<Select', '  options={options}', '  value={value}', '  onChange={setValue}']
+  const lines = []
+  if (config.dataset === 'grouped' && !config.isAsync) {
+    lines.push("// groupedOptions = [{ label: 'Bundlers', options: [...] }, ...]")
+  }
+  if (config.dataset === 'icons') {
+    lines.push("// { value: 'card', label: 'Credit card', icon: '💳', description: '…' }")
+  }
+  lines.push('<Select')
+  if (config.isAsync) {
+    lines.push('  loadOptions={loadOptions}', '  defaultOptions')
+    if (debounce) lines.push(`  debounceMs={${debounce}}`)
+  } else {
+    lines.push(`  options={${dataset.name}}`)
+  }
+  lines.push('  value={value}', '  onChange={setValue}')
   if (config.isMulti) lines.push('  isMulti')
   if (!config.isSearchable) lines.push('  isSearchable={false}')
   if (config.isClearable) lines.push('  isClearable')
@@ -399,6 +755,19 @@ function PropsPlayground({ options }) {
   if (config.placeholder !== PROPS_DEFAULTS.placeholder) {
     lines.push(`  placeholder="${config.placeholder}"`)
   }
+  if (config.color) lines.push(`  color="${config.color}"`)
+  if (config.variant !== 'outline') lines.push(`  variant="${config.variant}"`)
+  if (config.size !== 'md') lines.push(`  size="${config.size}"`)
+  if (config.radius !== '') lines.push(`  radius={${config.radius}}`)
+  for (const [k, v] of Object.entries(colorProps)) lines.push(`  ${k}="${v}"`)
+  if (config.showCheckmark) lines.push('  showCheckmark')
+  if (config.isInvalid) lines.push('  isInvalid')
+  if (config.highlightMatch) lines.push('  highlightMatch')
+  if (config.isCreatable) lines.push('  isCreatable')
+  if (config.isMulti && config.showSelectAll) lines.push('  showSelectAll')
+  if (config.isMulti && config.maxSelected !== '') lines.push(`  maxSelected={${config.maxSelected}}`)
+  if (config.usePortal) lines.push('  menuPortalTarget={document.body}')
+  if (config.disableSome) lines.push('  isOptionDisabled={(o) => blocked.has(o.value)}')
   lines.push('/>')
   const snippet = lines.join('\n')
 
@@ -407,6 +776,12 @@ function PropsPlayground({ options }) {
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
   }
+
+  const selectedLabels = config.isMulti
+    ? (value ?? []).map((v) => v.label)
+    : value
+      ? [value.label]
+      : []
 
   return (
     <section
@@ -421,7 +796,7 @@ function PropsPlayground({ options }) {
       }}
     >
       <div style={{ textAlign: 'center', marginBottom: 28 }}>
-        <Tag color="#38bdf8">🛝 Props Playground</Tag>
+        <Tag color="#38bdf8">🎛️ Props Playground</Tag>
         <h2
           style={{
             margin: '14px 0 8px',
@@ -455,18 +830,9 @@ function PropsPlayground({ options }) {
               marginBottom: 12,
             }}
           >
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                color: 'var(--text-muted)',
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
-              }}
-            >
-              Props
-            </span>
+            <span style={playgroundHeading}>Props</span>
             <button
+              type="button"
               onClick={reset}
               style={{
                 padding: '4px 10px',
@@ -483,15 +849,7 @@ function PropsPlayground({ options }) {
             </button>
           </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns:
-                'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
-              gap: 10,
-              alignItems: 'start',
-            }}
-          >
+          <div style={playgroundGrid}>
             <Toggle
               label="isMulti"
               checked={config.isMulti}
@@ -537,7 +895,7 @@ function PropsPlayground({ options }) {
             <Segmented
               label="menuPlacement"
               value={config.menuPlacement}
-              options={['bottom', 'top']}
+              options={['bottom', 'top', 'auto']}
               onChange={(v) => set('menuPlacement', v)}
             />
             <TextField
@@ -551,25 +909,120 @@ function PropsPlayground({ options }) {
               onChange={(v) => set('menuSearchPlaceholder', v)}
               disabled={!config.showMenuSearchInput}
             />
+            <ColorSwatchField
+              label="color"
+              value={config.color}
+              onChange={(v) => set('color', v)}
+            />
+            <SelectField
+              label="variant"
+              value={config.variant}
+              options={VARIANTS}
+              onChange={(v) => set('variant', v)}
+            />
+            <Segmented
+              label="size"
+              value={config.size}
+              options={['sm', 'md', 'lg']}
+              onChange={(v) => set('size', v)}
+            />
+            <RangeField
+              label="radius"
+              value={config.radius}
+              onChange={(v) => set('radius', v)}
+              min={0}
+              max={28}
+              fallback={12}
+            />
+            <Toggle
+              label="showCheckmark"
+              checked={config.showCheckmark}
+              onChange={(v) => set('showCheckmark', v)}
+              hint="✓ next to selected options"
+            />
+            <Toggle
+              label="isInvalid"
+              checked={config.isInvalid}
+              onChange={(v) => set('isInvalid', v)}
+              hint="Error border, ring and aria-invalid"
+            />
+            <Toggle
+              label="highlightMatch"
+              checked={config.highlightMatch}
+              onChange={(v) => set('highlightMatch', v)}
+              hint="Underline the typed text"
+            />
+            <Toggle
+              label="isCreatable"
+              checked={config.isCreatable}
+              onChange={(v) => set('isCreatable', v)}
+              hint="Type something new → “Create …”"
+            />
+            <Toggle
+              label="showSelectAll"
+              checked={config.showSelectAll}
+              onChange={(v) => set('showSelectAll', v)}
+              hint="Select all / Clear all row (multi)"
+              disabled={multiOnly}
+            />
+            <TextField
+              label="maxSelected"
+              type="number"
+              value={config.maxSelected}
+              onChange={(v) => set('maxSelected', v)}
+              placeholder="No limit"
+              disabled={multiOnly}
+            />
+            <Toggle
+              label="menuPortalTarget"
+              checked={config.usePortal}
+              onChange={(v) => set('usePortal', v)}
+              hint="Render the menu in document.body"
+            />
+            <Toggle
+              label="isOptionDisabled"
+              checked={config.disableSome}
+              onChange={(v) => set('disableSome', v)}
+              hint="Disable a few options"
+            />
+            <Segmented
+              label="options"
+              value={config.dataset}
+              options={['flat', 'grouped', 'icons']}
+              onChange={(v) => set('dataset', v)}
+            />
+            <Toggle
+              label="loadOptions"
+              checked={config.isAsync}
+              onChange={(v) => set('isAsync', v)}
+              hint="Async search (400ms fake API)"
+            />
+            <TextField
+              label="debounceMs"
+              type="number"
+              value={config.debounceMs}
+              onChange={(v) => set('debounceMs', v)}
+              placeholder="0"
+              disabled={!config.isAsync}
+            />
+          </div>
+
+          <span style={{ ...playgroundHeading, display: 'block', margin: '20px 0 12px' }}>
+            Per-part colors
+          </span>
+          <div style={playgroundGrid}>
+            {COLOR_PROPS.map((k) => (
+              <ColorInput key={k} label={k} value={config[k]} onChange={(v) => set(k, v)} />
+            ))}
           </div>
         </div>
 
         {/* Bottom — Live preview + snippet (full width) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <label
-              style={{
-                display: 'block',
-                marginBottom: 10,
-                fontSize: 11,
-                fontWeight: 700,
-                color: 'var(--text-muted)',
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
-              }}
-            >
+            <span style={{ ...playgroundHeading, display: 'block', marginBottom: 10 }}>
               Live Preview
-            </label>
+            </span>
             <div
               style={{
                 padding: 20,
@@ -580,7 +1033,9 @@ function PropsPlayground({ options }) {
               }}
             >
               <Select
-                options={options}
+                {...(config.isAsync
+                  ? { loadOptions: loadPlaygroundOptions, defaultOptions: true, debounceMs: debounce }
+                  : { options: dataset.options })}
                 value={value}
                 onChange={setValue}
                 isMulti={config.isMulti}
@@ -593,8 +1048,25 @@ function PropsPlayground({ options }) {
                 menuPlacement={config.menuPlacement}
                 placeholder={config.placeholder}
                 menuSearchPlaceholder={config.menuSearchPlaceholder}
+                color={config.color || undefined}
+                variant={config.variant}
+                size={config.size}
+                radius={config.radius === '' ? undefined : Number(config.radius)}
+                {...colorProps}
+                showCheckmark={config.showCheckmark}
+                isInvalid={config.isInvalid}
+                highlightMatch={config.highlightMatch}
+                isCreatable={config.isCreatable}
+                showSelectAll={config.isMulti && config.showSelectAll}
+                maxSelected={
+                  config.isMulti && config.maxSelected !== '' ? Number(config.maxSelected) : undefined
+                }
+                menuPortalTarget={config.usePortal ? document.body : undefined}
+                isOptionDisabled={
+                  config.disableSome ? (o) => PLAYGROUND_BLOCKED.has(o.value) : undefined
+                }
               />
-              {value && (config.isMulti ? value.length > 0 : true) && (
+              {selectedLabels.length > 0 && (
                 <div
                   style={{
                     marginTop: 14,
@@ -607,28 +1079,16 @@ function PropsPlayground({ options }) {
                   }}
                 >
                   <strong style={{ color: 'var(--text-primary)' }}>Selected:</strong>{' '}
-                  {config.isMulti
-                    ? value.map((v) => v.label).join(', ')
-                    : value.label}
+                  {selectedLabels.join(', ')}
                 </div>
               )}
             </div>
           </div>
 
           <div>
-            <label
-              style={{
-                display: 'block',
-                marginBottom: 10,
-                fontSize: 11,
-                fontWeight: 700,
-                color: 'var(--text-muted)',
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
-              }}
-            >
+            <span style={{ ...playgroundHeading, display: 'block', marginBottom: 10 }}>
               Generated JSX
-            </label>
+            </span>
             <div
               style={{
                 position: 'relative',
@@ -643,6 +1103,7 @@ function PropsPlayground({ options }) {
               }}
             >
               <button
+                type="button"
                 onClick={copySnippet}
                 style={{
                   position: 'absolute',
@@ -673,6 +1134,21 @@ function PropsPlayground({ options }) {
       </div>
     </section>
   )
+}
+
+const playgroundHeading = {
+  fontSize: 11,
+  fontWeight: 700,
+  color: 'var(--text-muted)',
+  textTransform: 'uppercase',
+  letterSpacing: 0.5,
+}
+
+const playgroundGrid = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
+  gap: 10,
+  alignItems: 'start',
 }
 
 function ThemeStudio({ themeOptions }) {
@@ -920,6 +1396,301 @@ function ThemeStudio({ themeOptions }) {
               uses this color too.
             </p>
           </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+const PRESET_NAMES = Object.keys(colorPresets)
+
+const studioLabelStyle = {
+  display: 'block',
+  marginBottom: 10,
+  fontSize: 12,
+  fontWeight: 600,
+  color: 'var(--text-muted)',
+  textTransform: 'uppercase',
+  letterSpacing: 0.5,
+}
+
+function ColorStudio({ options }) {
+  const [color, setColor] = useState('purple')
+  const [variant, setVariant] = useState('outline')
+  const [size, setSize] = useState('md')
+  const [showCheckmark, setShowCheckmark] = useState(true)
+  const [isInvalid, setIsInvalid] = useState(false)
+  const [single, setSingle] = useState(options[0])
+  const [multi, setMulti] = useState([options[1], options[2]])
+  const [copied, setCopied] = useState(false)
+
+  const isPreset = Object.hasOwn(colorPresets, color)
+  const hex = isPreset ? rgbToHex(colorPresets[color]) : color
+
+  const lines = ['<Select', '  options={options}', `  color="${color}"`]
+  if (variant !== 'outline') lines.push(`  variant="${variant}"`)
+  if (size !== 'md') lines.push(`  size="${size}"`)
+  if (showCheckmark) lines.push('  showCheckmark')
+  if (isInvalid) lines.push('  isInvalid')
+  lines.push('/>')
+  const snippet = lines.join('\n')
+
+  const copySnippet = () => {
+    navigator.clipboard.writeText(snippet)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+
+  const shared = { color, variant, size, showCheckmark, isInvalid }
+
+  return (
+    <section
+      id="color-studio"
+      className="fade-up"
+      style={{
+        marginBottom: 80,
+        padding: 'clamp(20px, 4vw, 32px)',
+        background: `linear-gradient(135deg, ${hex}14, rgb(var(--surface-rgb) / 0.02))`,
+        border: `1px solid ${hex}40`,
+        borderRadius: 24,
+        backdropFilter: 'blur(12px)',
+        transition: 'background 0.3s, border-color 0.3s',
+      }}
+    >
+      <div style={{ textAlign: 'center', marginBottom: 28 }}>
+        <Tag color={hex}>🌈 New in 0.5 · Color props</Tag>
+        <h2
+          style={{
+            margin: '14px 0 8px',
+            fontSize: 32,
+            fontWeight: 800,
+            color: 'var(--text-primary)',
+            letterSpacing: -0.5,
+          }}
+        >
+          One prop, every state colored
+        </h2>
+        <p style={{ margin: '0 auto', maxWidth: 620, color: 'var(--text-muted)', fontSize: 15 }}>
+          <code>color=&quot;purple&quot;</code> tints the background, border, hover glow, focus ring,
+          selected option and chips, each at its own opacity. Per Select, no CSS needed.
+        </p>
+      </div>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
+          gap: 28,
+          alignItems: 'start',
+        }}
+      >
+        {/* Left: controls */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div>
+            <span style={studioLabelStyle}>color — {PRESET_NAMES.length} presets</span>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(34px, 1fr))',
+                gap: 8,
+              }}
+            >
+              {PRESET_NAMES.map((name) => {
+                const active = name === color
+                const swatch = rgbToHex(colorPresets[name])
+                return (
+                  <button
+                    key={name}
+                    onClick={() => setColor(name)}
+                    title={name}
+                    aria-label={`Use ${name}`}
+                    aria-pressed={active}
+                    style={{
+                      aspectRatio: '1',
+                      width: '100%',
+                      borderRadius: 10,
+                      border: 'none',
+                      background: swatch,
+                      cursor: 'pointer',
+                      boxShadow: active
+                        ? `0 0 0 2px var(--bg-body), 0 0 0 4px ${swatch}`
+                        : 'inset 0 0 0 1px rgb(0 0 0 / 0.12)',
+                      transform: active ? 'scale(1.06)' : 'scale(1)',
+                      transition: 'transform 0.15s, box-shadow 0.15s',
+                    }}
+                  />
+                )
+              })}
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                marginTop: 12,
+                padding: 8,
+                background: 'rgb(var(--surface-strong-rgb) / 0.5)',
+                border: '1px solid rgb(var(--border-rgb) / 0.08)',
+                borderRadius: 10,
+              }}
+            >
+              <input
+                type="color"
+                aria-label="Custom color"
+                value={hex}
+                onChange={(e) => setColor(e.target.value)}
+                style={{
+                  width: 40,
+                  height: 32,
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              />
+              <code style={{ color: 'var(--text-secondary)', fontSize: 13, flex: 1 }}>
+                {isPreset ? `"${color}"` : `"${color}"  (any hex works)`}
+              </code>
+            </div>
+          </div>
+
+          <Segmented
+            label={`variant — ${VARIANTS.length} styles`}
+            value={variant}
+            options={VARIANTS}
+            onChange={setVariant}
+            minItemWidth={84}
+          />
+          <Segmented label="size" value={size} options={['sm', 'md', 'lg']} onChange={setSize} />
+          <div style={{ display: 'grid', gap: 10 }}>
+            <Toggle
+              label="showCheckmark"
+              checked={showCheckmark}
+              onChange={setShowCheckmark}
+              hint="✓ next to selected options"
+            />
+            <Toggle
+              label="isInvalid"
+              checked={isInvalid}
+              onChange={setIsInvalid}
+              hint="Error border, ring and aria-invalid"
+            />
+          </div>
+        </div>
+
+        {/* Right: preview + snippet */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <span style={studioLabelStyle}>Live preview — hover, focus, open</span>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 14,
+                padding: 20,
+                background: 'rgb(var(--surface-strong-rgb) / 0.5)',
+                border: '1px solid rgb(var(--border-rgb) / 0.08)',
+                borderRadius: 12,
+              }}
+            >
+              <Select
+                {...shared}
+                options={options}
+                value={single}
+                onChange={setSingle}
+                isClearable
+                placeholder="Single select…"
+              />
+              <Select
+                {...shared}
+                options={options}
+                value={multi}
+                onChange={setMulti}
+                isMulti
+                isClearable
+                closeMenuOnSelect={false}
+                placeholder="Multi select…"
+              />
+            </div>
+          </div>
+
+          <div
+            style={{
+              position: 'relative',
+              background: 'rgb(var(--code-rgb) / 0.7)',
+              border: '1px solid rgb(var(--border-rgb) / 0.08)',
+              borderRadius: 10,
+              padding: '14px 16px',
+              fontSize: 12.5,
+              lineHeight: 1.6,
+              color: 'var(--text-secondary)',
+            }}
+          >
+            <button
+              onClick={copySnippet}
+              style={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                padding: '4px 10px',
+                fontSize: 11,
+                fontWeight: 600,
+                background: copied ? 'rgba(34, 197, 94, 0.2)' : `${hex}33`,
+                color: copied ? '#86efac' : 'var(--text-primary)',
+                border: `1px solid ${copied ? 'rgba(34, 197, 94, 0.4)' : `${hex}80`}`,
+                borderRadius: 6,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              {copied ? '✓ Copied' : 'Copy'}
+            </button>
+            <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{snippet}</pre>
+          </div>
+        </div>
+      </div>
+
+      {/* Gallery: every preset at a glance */}
+      <div style={{ marginTop: 32 }}>
+        <span style={studioLabelStyle}>Every preset, side by side</span>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 190px), 1fr))',
+            gap: 12,
+          }}
+        >
+          {PRESET_NAMES.map((name, i) => (
+            <div key={name}>
+              <button
+                onClick={() => setColor(name)}
+                style={{
+                  display: 'block',
+                  marginBottom: 6,
+                  padding: 0,
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  fontFamily: 'inherit',
+                  fontWeight: 600,
+                  color: name === color ? 'var(--text-primary)' : 'var(--text-muted)',
+                }}
+              >
+                <code>{name}</code>
+              </button>
+              <Select
+                color={name}
+                variant={variant}
+                size="sm"
+                options={options}
+                defaultValue={options[i % options.length]}
+                isSearchable={false}
+                showCheckmark
+                aria-label={`${name} example`}
+              />
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -1323,7 +2094,22 @@ export default function Page() {
   const [customValue, setCustomValue] = useState(null)
   const [iconValue, setIconValue] = useState(null)
   const [iconChoice, setIconChoice] = useState('thick')
+  const [groupedValue, setGroupedValue] = useState([])
+  const [plan, setPlan] = useState(null)
+  const [country, setCountry] = useState(null)
+  const [countryTouched, setCountryTouched] = useState(false)
+  const [brandValue, setBrandValue] = useState(null)
+  const [tagOptions, setTagOptions] = useState(TAG_OPTIONS)
+  const [tags, setTags] = useState([TAG_OPTIONS[0]])
+  const [limited, setLimited] = useState([])
+  const [payment, setPayment] = useState(null)
+  const [clipped, setClipped] = useState(null)
+  const [portaled, setPortaled] = useState(null)
+  const [portalTarget, setPortalTarget] = useState(null)
   const [mode, setMode] = useState('dark')
+
+  // document.body only exists in the browser.
+  useEffect(() => setPortalTarget(document.body), [])
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -1527,7 +2313,7 @@ export default function Page() {
         {/* Hero */}
         <section className="fade-up" style={{ textAlign: 'center', marginBottom: 80 }}>
           <div style={{ display: 'inline-flex', marginBottom: 20 }}>
-            <Tag color="#a78bfa">V0.4.0 · Now Available</Tag>
+            <Tag color="#a78bfa">V0.5.0 · Now Available</Tag>
           </div>
           <h1
             style={{
@@ -1709,8 +2495,11 @@ export default function Page() {
         {/* Theme Studio — live color picker that updates --rns-accent */}
         <ThemeStudio themeOptions={FRAMEWORK_OPTIONS} />
 
+        {/* Color Studio — per-Select color / variant / size props */}
+        <ColorStudio options={FRAMEWORK_OPTIONS} />
+
         {/* Props Playground — toggle every prop live */}
-        <PropsPlayground options={STATIC_OPTIONS} />
+        <PropsPlayground />
 
         {/* Demos */}
         <section style={{ marginBottom: 40 }}>
@@ -1840,18 +2629,20 @@ export default function Page() {
                 { label: 'Debounced', color: '#a78bfa' },
               ]}
               title="Async options"
-              description="Fetch options from anywhere — APIs, databases, anything Promise-based."
+              description="Fetch options from anywhere — APIs, databases, anything Promise-based. debounceMs waits for a pause in typing, so you get one request instead of one per keystroke."
               code={`<Select
   loadOptions={async (input) => {
     const res = await fetch(\`/api/search?q=\${input}\`)
     return res.json()
   }}
   defaultOptions
+  debounceMs={300}
 />`}
             >
               <Select
                 loadOptions={loadOptions}
                 defaultOptions
+                debounceMs={300}
                 placeholder="Type to search (simulated 400ms delay)…"
                 onChange={setAsyncValue}
                 value={asyncValue}
@@ -1934,6 +2725,289 @@ export default function Page() {
                 placeholder="Open me — watch the icon…"
                 dropdownIcon={DROPDOWN_ICON_VARIANTS[iconChoice].render}
               />
+            </DemoCard>
+
+            <DemoCard
+              tags={[
+                { label: 'New', color: '#34d399' },
+                { label: 'Groups', color: '#38bdf8' },
+              ]}
+              title="Grouped options"
+              description="Pass { label, options } items. Search filters inside each group and arrow keys flow across them."
+              code={`const options = [
+  { label: 'UI libraries', options: [
+    { value: 'react', label: 'React' }, ...
+  ]},
+  { label: 'Bundlers', options: [...] },
+]
+
+<Select options={options} isMulti showCheckmark color="sky" />`}
+            >
+              <Select
+                options={GROUPED_OPTIONS}
+                value={groupedValue}
+                onChange={setGroupedValue}
+                isMulti
+                isClearable
+                showCheckmark
+                closeMenuOnSelect={false}
+                color="sky"
+                placeholder="Pick your stack…"
+              />
+            </DemoCard>
+
+            <DemoCard
+              tags={[
+                { label: 'New', color: '#34d399' },
+                { label: 'Disabled options', color: '#fbbf24' },
+              ]}
+              title="Disabled options"
+              description="Set isDisabled on an option (or pass isOptionDisabled). It's greyed out, can't be clicked, and the keyboard skips it."
+              code={`const options = [
+  { value: 'free', label: 'Free' },
+  { value: 'team', label: 'Team — coming soon', isDisabled: true },
+  ...
+]
+
+<Select options={options} color="amber" variant="filled" />`}
+            >
+              <Select
+                options={PLAN_OPTIONS}
+                value={plan}
+                onChange={setPlan}
+                color="amber"
+                variant="filled"
+                showCheckmark
+                placeholder="Choose a plan…"
+              />
+            </DemoCard>
+
+            <DemoCard
+              tags={[
+                { label: 'New', color: '#34d399' },
+                { label: 'Validation', color: '#f43f5e' },
+              ]}
+              title="Error state"
+              description="isInvalid switches to a danger border and ring and sets aria-invalid. Open and close without picking to see it."
+              code={`<Select
+  options={countries}
+  value={country}
+  onChange={setCountry}
+  onMenuClose={() => setTouched(true)}
+  isInvalid={touched && !country}
+/>`}
+            >
+              <Select
+                options={COUNTRY_OPTIONS}
+                value={country}
+                onChange={setCountry}
+                onMenuClose={() => setCountryTouched(true)}
+                isInvalid={countryTouched && !country}
+                isClearable
+                placeholder="Country (required)…"
+                aria-label="Country"
+              />
+              {countryTouched && !country && (
+                <div
+                  role="alert"
+                  style={{ marginTop: 8, fontSize: 13, color: '#f87171', fontWeight: 500 }}
+                >
+                  Please choose a country.
+                </div>
+              )}
+            </DemoCard>
+
+            <DemoCard
+              tags={[
+                { label: 'New', color: '#34d399' },
+                { label: 'Color props', color: '#fb923c' },
+              ]}
+              title="Every color, your call"
+              description="Set individual parts with bgColor, borderColor, focusColor, textColor, menuBgColor, optionHoverColor, optionSelectedColor, chipColor and radius."
+              code={`<Select
+  options={options}
+  color="orange"            // hover, scrollbar, icons
+  bgColor="#fff7ed"
+  borderColor="#fdba74"
+  focusColor="#ea580c"
+  textColor="#7c2d12"
+  placeholderColor="#c2410c"
+  menuBgColor="#fff7ed"
+  optionHoverColor="#ffedd5"
+  optionSelectedColor="#fed7aa"
+  radius={8}
+  style={{ '--rns-muted': '#9a3412' }} // any --rns-* token
+/>`}
+            >
+              <Select
+                options={FRAMEWORK_OPTIONS}
+                value={brandValue}
+                onChange={setBrandValue}
+                isClearable
+                color="orange"
+                bgColor="#fff7ed"
+                borderColor="#fdba74"
+                focusColor="#ea580c"
+                textColor="#7c2d12"
+                placeholderColor="#c2410c"
+                menuBgColor="#fff7ed"
+                optionHoverColor="#ffedd5"
+                optionSelectedColor="#fed7aa"
+                radius={8}
+                style={{ '--rns-muted': '#9a3412' }}
+                placeholder="A fully custom palette…"
+              />
+            </DemoCard>
+
+            <DemoCard
+              tags={[
+                { label: 'New', color: '#34d399' },
+                { label: 'Creatable', color: '#34d399' },
+              ]}
+              title="Create new options"
+              description="isCreatable offers “Create …” when the text matches nothing. Handle it with onCreateOption, or let the Select pick the new option itself."
+              code={`<Select
+  options={tags}
+  value={value}
+  onChange={setValue}
+  isMulti
+  isCreatable
+  onCreateOption={(text) => {
+    const tag = { value: text, label: text }
+    setTags((t) => [...t, tag])
+    setValue((v) => [...v, tag])
+  }}
+/>`}
+            >
+              <Select
+                options={tagOptions}
+                value={tags}
+                onChange={setTags}
+                isMulti
+                isCreatable
+                onCreateOption={(text) => {
+                  const tag = { value: text.toLowerCase(), label: text }
+                  setTagOptions((t) => [...t, tag])
+                  setTags((v) => [...v, tag])
+                }}
+                color="emerald"
+                placeholder="Add tags — type a new one…"
+              />
+            </DemoCard>
+
+            <DemoCard
+              tags={[
+                { label: 'New', color: '#34d399' },
+                { label: 'Select all', color: '#a78bfa' },
+                { label: 'Limit', color: '#fbbf24' },
+              ]}
+              title="Select all + max limit"
+              description="showSelectAll adds a Select all / Clear all row (it respects the search). maxSelected disables the rest once the limit is hit."
+              code={`<Select
+  options={options}
+  isMulti
+  showSelectAll
+  maxSelected={5}
+  showCheckmark
+/>`}
+            >
+              <Select
+                options={STATIC_OPTIONS}
+                value={limited}
+                onChange={setLimited}
+                isMulti
+                isClearable
+                showSelectAll
+                maxSelected={5}
+                showCheckmark
+                closeMenuOnSelect={false}
+                color="violet"
+                placeholder="Pick up to 5 tools…"
+              />
+              <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-soft)' }}>
+                {limited.length} / 5 selected
+              </div>
+            </DemoCard>
+
+            <DemoCard
+              tags={[
+                { label: 'New', color: '#34d399' },
+                { label: 'Icons', color: '#38bdf8' },
+                { label: 'Highlight', color: '#f472b6' },
+              ]}
+              title="Icons, descriptions & match highlight"
+              description="Give an option an icon and a description and they render automatically. highlightMatch underlines what you typed."
+              code={`const options = [
+  { value: 'card', label: 'Credit card',
+    icon: '💳', description: 'Visa, Mastercard, Amex' },
+  ...
+]
+
+<Select options={options} highlightMatch showCheckmark />`}
+            >
+              <Select
+                options={PAYMENT_OPTIONS}
+                value={payment}
+                onChange={setPayment}
+                isClearable
+                highlightMatch
+                showCheckmark
+                color="sky"
+                placeholder="Payment method — try typing “an”…"
+              />
+            </DemoCard>
+
+            <DemoCard
+              tags={[
+                { label: 'New', color: '#34d399' },
+                { label: 'Portal', color: '#fb923c' },
+              ]}
+              title="Menu portal"
+              description="Inside an overflow: hidden box (a modal, a table cell) the menu gets cut off. menuPortalTarget renders it into document.body instead."
+              code={`<Select
+  options={options}
+  menuPortalTarget={document.body}
+/>`}
+            >
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: 10,
+                  padding: 12,
+                  height: 96,
+                  overflow: 'hidden',
+                  border: '1px dashed rgb(var(--border-rgb) / 0.25)',
+                  borderRadius: 12,
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: 11, color: 'var(--text-soft)', marginBottom: 6 }}>
+                    Without portal
+                  </div>
+                  <Select
+                    options={FRAMEWORK_OPTIONS}
+                    value={clipped}
+                    onChange={setClipped}
+                    size="sm"
+                    placeholder="Clipped…"
+                  />
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: 'var(--text-soft)', marginBottom: 6 }}>
+                    menuPortalTarget
+                  </div>
+                  <Select
+                    options={FRAMEWORK_OPTIONS}
+                    value={portaled}
+                    onChange={setPortaled}
+                    size="sm"
+                    color="orange"
+                    menuPortalTarget={portalTarget}
+                    placeholder="Escapes…"
+                  />
+                </div>
+              </div>
             </DemoCard>
 
             <DemoCard

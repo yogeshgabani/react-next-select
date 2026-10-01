@@ -1,7 +1,7 @@
 {
   "name": "react-next-select",
-  "version": "0.4.0",
-  "description": "Accessible, SSR-safe React Select for Next.js — single/multi, async, customizable",
+  "version": "0.5.0",
+  "description": "Accessible, SSR-safe React Select for Next.js — single/multi, async, grouped options, one-prop color themes, zero dependencies",
   "author": "Yogesh Gabani",
   "license": "MIT",
   "repository": {
@@ -35,21 +35,28 @@
   "scripts": {
     "build": "vite build && node -e \"require('fs').copyFileSync('src/index.d.ts','dist/index.d.ts')\"",
     "dev": "vite build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "prepublishOnly": "npm run typecheck && npm run build"
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "@vitejs/plugin-react": "^4.3.4",
+    "jsdom": "^29.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "typescript": "^7.0.2",
-    "vite": "^6.0.3"
+    "vite": "^6.0.3",
+    "vitest": "^5.0.3"
   },
   "keywords": [
     "react",
@@ -75,7 +82,16 @@
     "select-input",
     "ui-component",
     "app-router",
-    "typescript"
+    "typescript",
+    "react-select-alternative",
+    "nextjs-select",
+    "autocomplete",
+    "grouped-options",
+    "option-groups",
+    "themeable",
+    "dark-mode",
+    "creatable",
+    "tags-input"
   ],
   "engines": {
     "node": ">=16"
