@@ -11,5 +11,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-next-select": "file:../"
+  },
+  "devDependencies": {
+    "@netlify/plugin-nextjs": "^5.16.1"
   }
 }

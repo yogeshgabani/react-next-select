@@ -1,7 +1,10 @@
 [build]
-  base = "."
-  command = "npm install && npm run build && cd examples && npm install --legacy-peer-deps && npm run build"
-  publish = "examples/.next"
+  # Base is the demo app, so Netlify detects Next.js from examples/package.json
+  # and the generated server handler sits next to a CommonJS package.json
+  # (the library root declares "type": "module").
+  base = "examples"
+  command = "cd .. && npm install && npm run build && cd examples && npm install --legacy-peer-deps && npm run build"
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
