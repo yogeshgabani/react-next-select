@@ -1725,9 +1725,46 @@ const ABACUS_BASE = 'https://abacus.jasoncameron.dev'
 const ABACUS_NAMESPACE = 'react-next-select.netlify.app'
 const VISITOR_FLAG_KEY = 'rns_visited'
 
+// npm's public download-counts API — free, no key, CORS-enabled. One range
+// query is capped at 18 months, so the all-time total is summed in yearly
+// chunks starting from the first publish. Counts lag a day or two behind.
+const NPM_PACKAGE = 'react-next-select'
+const NPM_FIRST_PUBLISH = '2026-05-22'
+const DAY_MS = 24 * 60 * 60 * 1000
+
+async function fetchNpmDownloads() {
+  const toDay = (date) => date.toISOString().slice(0, 10)
+  const now = Date.now()
+  const periods = ['last-week']
+  for (let start = Date.parse(NPM_FIRST_PUBLISH); start <= now; start += 365 * DAY_MS) {
+    periods.push(`${toDay(new Date(start))}:${toDay(new Date(Math.min(start + 364 * DAY_MS, now)))}`)
+  }
+  const [weekly, ...yearly] = await Promise.all(
+    periods.map(async (period) => {
+      const res = await fetch(`https://api.npmjs.org/downloads/point/${period}/${NPM_PACKAGE}`)
+      if (!res.ok) throw new Error(`npm downloads request failed (${period})`)
+      return (await res.json()).downloads
+    }),
+  )
+  return { weekly, total: yearly.reduce((sum, n) => sum + n, 0) }
+}
+
 function SiteStats() {
   const [stats, setStats] = useState(null)
   const [failed, setFailed] = useState(false)
+  const [downloads, setDownloads] = useState(null)
+  const [downloadsFailed, setDownloadsFailed] = useState(false)
+
+  // Fetched separately from the hit counter so either can fail on its own.
+  useEffect(() => {
+    let cancelled = false
+    fetchNpmDownloads()
+      .then((d) => !cancelled && setDownloads(d))
+      .catch(() => !cancelled && setDownloadsFailed(true))
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -1769,7 +1806,7 @@ function SiteStats() {
 
   const formattedDate = stats?.lastUpdated
     ? new Date(stats.lastUpdated).toLocaleDateString('en-US', {
-      month: 'long',
+      month: 'short',
       day: 'numeric',
       year: 'numeric',
     })
@@ -1812,6 +1849,19 @@ function SiteStats() {
           <path d="M1 17c0-3 3-5 6-5s6 2 6 5" strokeLinecap="round" />
           <path d="M13 8a2.5 2.5 0 1 0 0-5" strokeLinecap="round" />
           <path d="M14 12.5c2 .4 3.5 2 3.5 4.5" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      key: 'downloads',
+      label: 'npm Downloads',
+      value: downloads ? downloads.total.toLocaleString() : downloadsFailed ? '—' : '···',
+      sub: downloads && `${downloads.weekly.toLocaleString()} in the last 7 days`,
+      color: '#34d399',
+      icon: (
+        <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M10 3v10M5.5 8.5 10 13l4.5-4.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M3 15v1a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1" strokeLinecap="round" />
         </svg>
       ),
     },
@@ -1929,6 +1979,9 @@ function SiteStats() {
               >
                 {it.value}
               </div>
+              {it.sub && (
+                <div style={{ marginTop: 2, fontSize: 12, color: 'var(--text-soft)' }}>{it.sub}</div>
+              )}
             </div>
           </div>
         ))}
@@ -3582,7 +3635,7 @@ export default function Page() {
           </div>
         </footer>
 
-        {/* Live site stats — hits/visitors tracked via the free Abacus counter API */}
+        {/* Live site stats — hits/visitors via the free Abacus counter API, downloads via npm */}
         <SiteStats />
       </main>
 
